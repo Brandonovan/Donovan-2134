@@ -1,0 +1,12 @@
+.full {
+  display: block;
+  width: 100%;
+  max-width: 240px;
+  height: auto;
+}
+
+.icon {
+  display: block;
+  height: 40px;
+  width: auto;
+}

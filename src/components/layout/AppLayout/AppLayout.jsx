@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { Button } from '@/components/ui/Button/Button'
+import { Logo } from '@/components/ui/Logo/Logo'
 import { ROUTES } from '@/constants/routes'
 import { useAuth } from '@/features/auth'
 import { formatCurrency } from '@/utils/formatCurrency'
@@ -11,8 +12,8 @@ export function AppLayout() {
   return (
     <div className={styles.layout}>
       <header className={styles.header}>
-        <NavLink to={ROUTES.LOBBY} className={styles.brand}>
-          🐌 SnailWin
+        <NavLink to={ROUTES.LOBBY} className={styles.brand} aria-label="Ir al lobby">
+          <Logo variant="icon" />
         </NavLink>
         <nav className={styles.nav}>
           <NavLink
