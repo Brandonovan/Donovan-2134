@@ -1,12 +1,31 @@
+import { Button } from '@/components/ui/Button/Button'
 import { formatDateTime } from '@/utils/formatDateTime'
+import { TROPHIES } from '../../data/trophies'
 import styles from './RaceCard.module.css'
 
-export function RaceCard({ race }) {
+export function RaceCard({ race, onViewDetails }) {
+  const trophy = TROPHIES[race.trophy]
+
   return (
     <article className={styles.card}>
-      <h3 className={styles.name}>{race.name}</h3>
-      <p className={styles.date}>{formatDateTime(race.startsAt)}</p>
-      <p className={styles.snails}>{race.snails.length} caracoles compitiendo</p>
+      <div className={styles.content}>
+        <time className={styles.date} dateTime={race.startsAt}>
+          {formatDateTime(race.startsAt)}
+        </time>
+        <div className={styles.info}>
+          <h3 className={styles.name}>{race.name}</h3>
+          <p className={styles.participants}>{race.participants} participantes</p>
+        </div>
+        <p className={styles.location}>
+          {race.location.city}, {race.location.venue}
+        </p>
+        <Button variant="secondary" className={styles.details} onClick={() => onViewDetails?.(race)}>
+          Ver más detalles
+        </Button>
+      </div>
+      {trophy && (
+        <img className={styles.trophy} src={trophy.src} alt={`Trofeo: ${trophy.name}`} />
+      )}
     </article>
   )
 }

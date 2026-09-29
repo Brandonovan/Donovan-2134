@@ -1,24 +1,86 @@
 .card {
+  position: relative;
   display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
-  padding: var(--space-lg);
-  background-color: var(--color-surface);
+  align-items: center;
+  gap: var(--space-md);
+  height: 100%;
+  padding: var(--space-lg) var(--space-lg) var(--space-lg) var(--space-xl);
+  background:
+    radial-gradient(circle at 85% 50%, rgb(245 200 80 / 0.18), transparent 45%),
+    var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
+  overflow: hidden;
 }
 
-.name {
-  font-size: 1.1rem;
+.content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-md);
+  min-width: 0;
 }
 
 .date {
   color: var(--color-accent);
-  font-weight: 600;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
-.snails {
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.name {
+  font-size: 1.25rem;
+}
+
+.participants {
   color: var(--color-text-muted);
   font-size: 0.875rem;
+}
+
+.location {
+  color: var(--color-text);
+  font-size: 0.9rem;
+}
+
+.location::before {
+  content: '📍 ';
+}
+
+.details {
+  align-self: flex-start;
+}
+
+.trophy {
+  flex-shrink: 0;
+  width: auto;
+  height: 150px;
+  filter: drop-shadow(0 6px 8px rgb(120 80 0 / 0.25));
+  transition: transform 0.3s;
+}
+
+.card:hover .trophy {
+  transform: rotate(-4deg) scale(1.05);
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: var(--space-md);
+  }
+
+  .trophy {
+    height: 110px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trophy {
+    transition: none;
+  }
 }

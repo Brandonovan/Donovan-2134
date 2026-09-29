@@ -1,6 +1,10 @@
+// "18 de septiembre, 15:00"
 const formatter = new Intl.DateTimeFormat('es-MX', {
-  dateStyle: 'medium',
-  timeStyle: 'short',
+  day: 'numeric',
+  month: 'long',
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
 })
 
 export function formatDateTime(date) {
