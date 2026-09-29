@@ -2,21 +2,29 @@ import { Button } from '@/components/ui/Button/Button'
 import { Input } from '@/components/ui/Input/Input'
 import { useAuth } from '../../hooks/useAuth'
 import { useAuthForm } from '../../hooks/useAuthForm'
-import { validateLogin } from '../../utils/validation'
+import { PASSWORD_MIN_LENGTH, validateRegister } from '../../utils/validation'
 import styles from '../AuthForm/AuthForm.module.css'
 
-const INITIAL_VALUES = { email: '', password: '' }
+const INITIAL_VALUES = { fullName: '', email: '', password: '', confirmPassword: '' }
 
-export function LoginForm() {
-  const { login } = useAuth()
+export function RegisterForm() {
+  const { register } = useAuth()
   const { values, errors, submitError, isSubmitting, handleChange, handleSubmit } = useAuthForm({
     initialValues: INITIAL_VALUES,
-    validate: validateLogin,
-    onSubmit: login,
+    validate: validateRegister,
+    onSubmit: ({ fullName, email, password }) => register({ fullName, email, password }),
   })
 
   return (
     <form className={styles.form} onSubmit={handleSubmit} noValidate>
+      <Input
+        label="Nombre completo"
+        name="fullName"
+        value={values.fullName}
+        onChange={handleChange}
+        error={errors.fullName}
+        autoComplete="name"
+      />
       <Input
         label="Correo electrónico"
         name="email"
@@ -33,7 +41,17 @@ export function LoginForm() {
         value={values.password}
         onChange={handleChange}
         error={errors.password}
-        autoComplete="current-password"
+        hint={`Mínimo ${PASSWORD_MIN_LENGTH} caracteres, con letras y números`}
+        autoComplete="new-password"
+      />
+      <Input
+        label="Confirmar contraseña"
+        name="confirmPassword"
+        type="password"
+        value={values.confirmPassword}
+        onChange={handleChange}
+        error={errors.confirmPassword}
+        autoComplete="new-password"
       />
       {submitError && (
         <p className={styles.error} role="alert">
@@ -41,7 +59,7 @@ export function LoginForm() {
         </p>
       )}
       <Button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? 'Entrando…' : 'Iniciar sesión'}
+        {isSubmitting ? 'Creando cuenta…' : 'Crear cuenta'}
       </Button>
     </form>
   )

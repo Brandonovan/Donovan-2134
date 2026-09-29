@@ -1,3 +1,5 @@
+export { AuthSwitchLink } from './components/AuthSwitchLink/AuthSwitchLink'
 export { LoginForm } from './components/LoginForm/LoginForm'
+export { RegisterForm } from './components/RegisterForm/RegisterForm'
 export { AuthProvider } from './context/AuthProvider'
 export { useAuth } from './hooks/useAuth'

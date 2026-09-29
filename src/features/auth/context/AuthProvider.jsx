@@ -5,9 +5,12 @@ import { AuthContext } from './AuthContext'
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(authService.getStoredUser)
 
-  const login = useCallback(async (email, password) => {
-    const loggedUser = await authService.login(email, password)
-    setUser(loggedUser)
+  const register = useCallback(async (data) => {
+    setUser(await authService.register(data))
+  }, [])
+
+  const login = useCallback(async (credentials) => {
+    setUser(await authService.login(credentials))
   }, [])
 
   const logout = useCallback(() => {
@@ -16,8 +19,8 @@ export function AuthProvider({ children }) {
   }, [])
 
   const value = useMemo(
-    () => ({ user, isAuthenticated: Boolean(user), login, logout }),
-    [user, login, logout],
+    () => ({ user, isAuthenticated: Boolean(user), register, login, logout }),
+    [user, register, login, logout],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

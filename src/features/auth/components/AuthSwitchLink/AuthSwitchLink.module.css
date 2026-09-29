@@ -1,0 +1,15 @@
+.text {
+  margin-top: var(--space-lg);
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.link {
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}

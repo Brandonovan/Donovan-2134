@@ -7,7 +7,7 @@
 
 .card {
   width: 100%;
-  max-width: 380px;
+  max-width: 400px;
   padding: var(--space-xl);
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -23,4 +23,10 @@
 .subtitle {
   margin: var(--space-sm) 0 var(--space-lg);
   color: var(--color-text-muted);
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: var(--space-lg) var(--space-md);
+  }
 }

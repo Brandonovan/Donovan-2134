@@ -1,15 +1,11 @@
-import { Logo } from '@/components/ui/Logo/Logo'
-import { LoginForm } from '@/features/auth'
-import styles from './LoginPage.module.css'
+import { ROUTES } from '@/constants/routes'
+import { AuthSwitchLink, LoginForm } from '@/features/auth'
 
 export function LoginPage() {
   return (
-    <div className={styles.page}>
-      <section className={styles.card}>
-        <Logo className={styles.logo} />
-        <p className={styles.subtitle}>Apuesta por el caracol más rápido</p>
-        <LoginForm />
-      </section>
-    </div>
+    <>
+      <LoginForm />
+      <AuthSwitchLink question="¿No tienes cuenta?" linkText="Regístrate aquí" to={ROUTES.REGISTER} />
+    </>
   )
 }

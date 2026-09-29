@@ -5,6 +5,9 @@
 }
 
 .error {
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-sm);
+  background-color: rgb(220 38 38 / 0.08);
   color: var(--color-danger);
   font-size: 0.875rem;
 }
