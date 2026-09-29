@@ -1,6 +1,8 @@
 import { useState } from 'react'
 
-export function useAuthForm({ initialValues, validate, onSubmit }) {
+const identity = (values) => values
+
+export function useAuthForm({ initialValues, sanitize = identity, validate, onSubmit }) {
   const [values, setValues] = useState(initialValues)
   const [errors, setErrors] = useState({})
   const [submitError, setSubmitError] = useState('')
@@ -16,13 +18,15 @@ export function useAuthForm({ initialValues, validate, onSubmit }) {
     event.preventDefault()
     setSubmitError('')
 
-    const validationErrors = validate(values)
+    // Se limpia al enviar (no en cada tecla) para no pelear con lo que el usuario escribe.
+    const cleanValues = sanitize(values)
+    const validationErrors = validate(cleanValues)
     setErrors(validationErrors)
     if (Object.keys(validationErrors).length > 0) return
 
     setIsSubmitting(true)
     try {
-      await onSubmit(values)
+      await onSubmit(cleanValues)
     } catch (error) {
       setSubmitError(error.message)
     } finally {

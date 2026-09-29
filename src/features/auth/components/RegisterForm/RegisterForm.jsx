@@ -1,16 +1,20 @@
+import { useId } from 'react'
 import { Button } from '@/components/ui/Button/Button'
 import { Input } from '@/components/ui/Input/Input'
 import { useAuth } from '../../hooks/useAuth'
 import { useAuthForm } from '../../hooks/useAuthForm'
-import { PASSWORD_MIN_LENGTH, validateRegister } from '../../utils/validation'
+import { FIELD_LIMITS, sanitizeRegister, validateRegister } from '../../utils/validation'
 import styles from '../AuthForm/AuthForm.module.css'
+import { PasswordRequirements } from '../PasswordRequirements/PasswordRequirements'
 
 const INITIAL_VALUES = { fullName: '', email: '', password: '', confirmPassword: '' }
 
 export function RegisterForm() {
   const { register } = useAuth()
+  const requirementsId = useId()
   const { values, errors, submitError, isSubmitting, handleChange, handleSubmit } = useAuthForm({
     initialValues: INITIAL_VALUES,
+    sanitize: sanitizeRegister,
     validate: validateRegister,
     onSubmit: ({ fullName, email, password }) => register({ fullName, email, password }),
   })
@@ -23,6 +27,7 @@ export function RegisterForm() {
         value={values.fullName}
         onChange={handleChange}
         error={errors.fullName}
+        maxLength={FIELD_LIMITS.fullName.max}
         autoComplete="name"
       />
       <Input
@@ -32,6 +37,7 @@ export function RegisterForm() {
         value={values.email}
         onChange={handleChange}
         error={errors.email}
+        maxLength={FIELD_LIMITS.email.max}
         autoComplete="email"
       />
       <Input
@@ -41,9 +47,11 @@ export function RegisterForm() {
         value={values.password}
         onChange={handleChange}
         error={errors.password}
-        hint={`Mínimo ${PASSWORD_MIN_LENGTH} caracteres, con letras y números`}
+        maxLength={FIELD_LIMITS.password.max}
+        aria-describedby={requirementsId}
         autoComplete="new-password"
       />
+      <PasswordRequirements id={requirementsId} password={values.password} />
       <Input
         label="Confirmar contraseña"
         name="confirmPassword"
@@ -51,6 +59,7 @@ export function RegisterForm() {
         value={values.confirmPassword}
         onChange={handleChange}
         error={errors.confirmPassword}
+        maxLength={FIELD_LIMITS.password.max}
         autoComplete="new-password"
       />
       {submitError && (

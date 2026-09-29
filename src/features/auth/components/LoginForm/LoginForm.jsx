@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/Button/Button'
 import { Input } from '@/components/ui/Input/Input'
 import { useAuth } from '../../hooks/useAuth'
 import { useAuthForm } from '../../hooks/useAuthForm'
-import { validateLogin } from '../../utils/validation'
+import { FIELD_LIMITS, sanitizeLogin, validateLogin } from '../../utils/validation'
 import styles from '../AuthForm/AuthForm.module.css'
 
 const INITIAL_VALUES = { email: '', password: '' }
@@ -11,6 +11,7 @@ export function LoginForm() {
   const { login } = useAuth()
   const { values, errors, submitError, isSubmitting, handleChange, handleSubmit } = useAuthForm({
     initialValues: INITIAL_VALUES,
+    sanitize: sanitizeLogin,
     validate: validateLogin,
     onSubmit: login,
   })
@@ -24,6 +25,7 @@ export function LoginForm() {
         value={values.email}
         onChange={handleChange}
         error={errors.email}
+        maxLength={FIELD_LIMITS.email.max}
         autoComplete="email"
       />
       <Input
@@ -33,6 +35,7 @@ export function LoginForm() {
         value={values.password}
         onChange={handleChange}
         error={errors.password}
+        maxLength={FIELD_LIMITS.password.max}
         autoComplete="current-password"
       />
       {submitError && (
