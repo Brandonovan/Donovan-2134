@@ -1,0 +1,21 @@
+# <tipo>: <título>
+#
+# what: <qué cambió>
+#
+# why: <por qué se hizo el cambio>
+#
+# ---------------------------------------------------------------
+# Tipos permitidos:
+#   fix     -> corrige un error
+#   update  -> modifica algo que ya existe
+#   add     -> agrega algo nuevo
+#   remove  -> elimina algo
+#
+# Ejemplo:
+#   add: formulario de apuestas
+#
+#   what: se creó el componente BetForm con selección de caracol y monto
+#
+#   why: los usuarios necesitan poder apostar desde la página de la carrera
+#
+# Las líneas que empiezan con # se ignoran en el commit.
