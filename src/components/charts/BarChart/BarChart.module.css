@@ -1,0 +1,101 @@
+.chart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.25rem minmax(80px, 110px) 1fr;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 2px var(--space-xs);
+  border-radius: var(--radius-sm);
+  outline: none;
+}
+
+.row:hover,
+.row:focus-visible {
+  background-color: var(--color-bg);
+}
+
+.row:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+.rank {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.label {
+  overflow: hidden;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* El padding derecho reserva el espacio del valor: así el 100% de la barra
+   es el mismo para todas las filas y las longitudes son proporcionales. */
+.track {
+  min-width: 0;
+  padding-right: 4.5rem;
+}
+
+.bar {
+  position: relative;
+  display: block;
+  height: 20px;
+  min-width: 4px;
+  background-color: var(--chart-bar);
+  border-radius: 0 4px 4px 0;
+  transition: width 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.value {
+  position: absolute;
+  top: 50%;
+  left: calc(100% + var(--space-sm));
+  transform: translateY(-50%);
+  white-space: nowrap;
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.tooltip {
+  position: absolute;
+  right: var(--space-sm);
+  bottom: calc(100% + 4px);
+  z-index: 2;
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-sm) var(--space-md);
+  background-color: var(--color-text);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+  color: #fff;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.row:hover .tooltip,
+.row:focus-visible .tooltip {
+  display: flex;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar {
+    transition: none;
+  }
+}

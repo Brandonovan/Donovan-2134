@@ -1,2 +1,6 @@
+export { BetsSummary } from './components/BetsSummary/BetsSummary'
+export { SeasonStandings } from './components/SeasonStandings/SeasonStandings'
 export { UpcomingRaces } from './components/UpcomingRaces/UpcomingRaces'
+export { BET_STATS } from './data/betStats'
+export { SEASON_RESULTS } from './data/seasonResults'
 export { UPCOMING_RACES } from './data/upcomingRaces'

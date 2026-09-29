@@ -1,4 +1,5 @@
 .carousel {
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -29,8 +30,10 @@
   outline-offset: 4px;
 }
 
+/* min-width: 0 evita que una tarjeta con contenido ancho estire la diapositiva. */
 .slide {
   flex: 0 0 100%;
+  min-width: 0;
   scroll-snap-align: center;
 }
 

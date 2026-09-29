@@ -21,3 +21,11 @@
   --font-family: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --shadow-sm: 0 1px 3px rgb(0 0 0 / 0.08);
 }
+
+/* Colores de gráficas: validados para daltonismo (ΔE ≥ 8) y contraste ≥ 3:1 sobre blanco. */
+:root {
+  --chart-win: #2a78d6;
+  --chart-loss: #e34948;
+  --chart-bar: #2a78d6;
+  --chart-grid: #e5e7eb;
+}
