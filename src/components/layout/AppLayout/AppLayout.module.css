@@ -16,25 +16,36 @@
 .brand {
   display: flex;
   align-items: center;
-}
-
-.nav {
-  display: flex;
-  gap: var(--space-md);
-  flex: 1;
-}
-
-.nav a {
-  color: var(--color-text-muted);
+  gap: var(--space-sm);
   text-decoration: none;
-  font-weight: 600;
 }
 
-.nav a.active {
+.brand:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 4px;
+  border-radius: var(--radius-sm);
+}
+
+.wordmark {
+  display: flex;
+  gap: 0.28em;
+  font-size: 1.45rem;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.wordmarkBold {
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.wordmarkLight {
   color: var(--color-primary);
+  font-weight: 400;
 }
 
 .user {
+  margin-left: auto;
   display: flex;
   align-items: center;
   gap: var(--space-md);

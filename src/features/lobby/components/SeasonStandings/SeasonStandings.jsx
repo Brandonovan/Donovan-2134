@@ -6,7 +6,7 @@ import { shortenName } from '@/utils/shortenName'
 import { computeStandings } from '../../utils/standings'
 import styles from './SeasonStandings.module.css'
 
-const TOP = 5
+const TOP = 6
 
 const plural = (count, singular, pluralForm) => `${count} ${count === 1 ? singular : pluralForm}`
 
@@ -44,11 +44,11 @@ function detailsFor(row) {
   ].join(' · ')
 }
 
-export function SeasonStandings({ results }) {
+export function SeasonStandings({ races }) {
   const [metric, setMetric] = useState('points')
   const [showAll, setShowAll] = useState(false)
 
-  const ranked = rankBy(computeStandings(results), metric)
+  const ranked = rankBy(computeStandings(races), metric)
   const visible = showAll ? ranked : ranked.slice(0, TOP)
   const { description, format } = METRICS[metric]
 

@@ -39,18 +39,19 @@
   padding: var(--space-xs) var(--space-md) var(--space-xs) var(--space-sm);
   border: none;
   border-radius: 999px;
-  background: linear-gradient(135deg, var(--color-accent), var(--color-primary));
-  color: #fff;
+  background: linear-gradient(180deg, var(--color-gold-hover), var(--color-gold));
+  color: var(--color-on-gold);
   font: inherit;
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 700;
   white-space: nowrap;
   cursor: pointer;
-  transition: filter 0.15s, transform 0.15s;
+  transition: filter 0.15s, box-shadow 0.15s, transform 0.15s;
 }
 
 .topUp:hover {
-  filter: brightness(1.1);
+  filter: brightness(1.06);
+  box-shadow: 0 0 18px rgb(242 193 78 / 0.35);
 }
 
 .topUp:active {
@@ -58,14 +59,17 @@
 }
 
 .topUp:focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-gold);
   outline-offset: 2px;
 }
 
-/* El logotipo es gris oscuro: se pasa a blanco para que contraste con el botón. */
 .logo {
-  height: 30px;
-  filter: brightness(0) invert(1);
+  width: 36px;
+  height: 26px;
+  background-color: currentColor;
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
 }
 
 @media (max-width: 480px) {

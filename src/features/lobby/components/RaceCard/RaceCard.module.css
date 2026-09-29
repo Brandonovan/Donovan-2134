@@ -6,7 +6,7 @@
   height: 100%;
   padding: var(--space-lg) var(--space-lg) var(--space-lg) var(--space-xl);
   background:
-    radial-gradient(circle at 85% 50%, rgb(245 200 80 / 0.18), transparent 45%),
+    radial-gradient(circle at 85% 50%, rgb(245 200 80 / 0.1), transparent 45%),
     var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -36,7 +36,7 @@
 }
 
 .name {
-  font-size: 1.25rem;
+  font-size: 1.45rem;
 }
 
 .participants {
@@ -61,7 +61,7 @@
   flex-shrink: 0;
   width: auto;
   height: 150px;
-  filter: drop-shadow(0 6px 8px rgb(120 80 0 / 0.25));
+  filter: drop-shadow(0 6px 12px rgb(0 0 0 / 0.55));
   transition: transform 0.3s;
 }
 

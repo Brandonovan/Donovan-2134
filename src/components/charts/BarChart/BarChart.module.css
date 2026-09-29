@@ -20,7 +20,7 @@
 
 .row:hover,
 .row:focus-visible {
-  background-color: var(--color-bg);
+  background-color: var(--color-surface-raised);
 }
 
 .row:focus-visible {
@@ -46,17 +46,31 @@
 /* El padding derecho reserva el espacio del valor: así el 100% de la barra
    es el mismo para todas las filas y las longitudes son proporcionales. */
 .track {
+  position: relative;
   min-width: 0;
   padding-right: 4.5rem;
+}
+
+/* Riel de fondo: marca el 100% para que la longitud de cada barra se lea contra algo. */
+.track::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 4.5rem;
+  height: 14px;
+  background-color: var(--color-surface-raised);
+  border-radius: 7px;
+  transform: translateY(-50%);
 }
 
 .bar {
   position: relative;
   display: block;
-  height: 20px;
+  height: 14px;
   min-width: 4px;
-  background-color: var(--chart-bar);
-  border-radius: 0 4px 4px 0;
+  background: linear-gradient(90deg, rgb(47 163 201 / 0.55), var(--chart-bar));
+  border-radius: 7px;
   transition: width 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
@@ -80,10 +94,11 @@
   flex-direction: column;
   gap: 2px;
   padding: var(--space-sm) var(--space-md);
-  background-color: var(--color-text);
+  background-color: var(--color-tooltip-bg);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-sm);
-  color: #fff;
+  color: var(--color-tooltip-text);
   font-size: 0.75rem;
   white-space: nowrap;
   pointer-events: none;

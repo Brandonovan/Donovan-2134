@@ -1,17 +1,16 @@
+.page h1 {
+  font-size: 2.4rem;
+  line-height: 1.1;
+}
+
 .page {
   display: flex;
   flex-direction: column;
   gap: var(--space-xl);
 }
 
-.charts {
+.grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
   gap: var(--space-lg);
-}
-
-@media (max-width: 400px) {
-  .charts {
-    grid-template-columns: 1fr;
-  }
 }

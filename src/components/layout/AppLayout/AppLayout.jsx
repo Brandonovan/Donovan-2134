@@ -12,17 +12,14 @@ export function AppLayout() {
   return (
     <div className={styles.layout}>
       <header className={styles.header}>
-        <NavLink to={ROUTES.LOBBY} className={styles.brand} aria-label="Ir al lobby">
-          <Logo variant="icon" />
+        <NavLink to={ROUTES.LOBBY} className={styles.brand} aria-label="SnailWin, ir al lobby">
+          <Logo variant="icon" decorative />
+          {/* Mismo trazo que el logo: "Snail" en negrita y "Win" en peso normal */}
+          <span className={styles.wordmark} aria-hidden="true">
+            <span className={styles.wordmarkBold}>Snail</span>
+            <span className={styles.wordmarkLight}>Win</span>
+          </span>
         </NavLink>
-        <nav className={styles.nav}>
-          <NavLink
-            to={ROUTES.LOBBY}
-            className={({ isActive }) => (isActive ? styles.active : undefined)}
-          >
-            Lobby
-          </NavLink>
-        </nav>
         <div className={styles.user}>
           <WalletWidget balance={user.balance} />
           <Button variant="secondary" onClick={logout}>

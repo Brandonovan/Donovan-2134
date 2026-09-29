@@ -1,13 +1,38 @@
+/* Tema oscuro. Los componentes usan estos tokens por su función (superficie, texto,
+   acento…), no por su valor, así que un tema claro solo tendría que redefinirlos. */
 :root {
-  --color-primary: #1e4d61;
-  --color-primary-hover: #163a4a;
-  --color-accent: #2f7a94;
-  --color-bg: #f9fafb;
-  --color-surface: #ffffff;
-  --color-text: #25262a;
-  --color-text-muted: #6b7280;
-  --color-border: #e5e7eb;
-  --color-danger: #dc2626;
+  color-scheme: dark;
+
+  /* Superficies: de la más profunda a la más elevada */
+  --color-bg: #0c1216;
+  --color-surface: #141d23;
+  --color-surface-raised: #1c2830;
+  --color-border: #27353e;
+
+  /* Texto */
+  --color-text: #e6edf0;
+  --color-text-muted: #8a9ba5;
+
+  /* Marca: `primary` para texto, bordes y estados activos; `primary-strong` para rellenos */
+  --color-primary: #5bbcdc;
+  --color-primary-strong: #1f7391;
+  --color-primary-hover: #2788aa;
+  --color-on-primary: #ffffff;
+  --color-accent: #7cc6e0;
+
+  /* Acción principal de dinero (cargar saldo): dorado, como las copas */
+  --color-gold: #f2c14e;
+  --color-gold-hover: #f7cf6b;
+  --color-on-gold: #1f1600;
+
+  /* Estados */
+  --color-danger: #f07171;
+  --color-positive: #3ecf73;
+  --color-negative: #f07171;
+
+  /* Tooltips */
+  --color-tooltip-bg: #263640;
+  --color-tooltip-text: #f1f5f7;
 
   --space-xs: 0.25rem;
   --space-sm: 0.5rem;
@@ -19,13 +44,17 @@
   --radius-md: 10px;
 
   --font-family: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --shadow-sm: 0 1px 3px rgb(0 0 0 / 0.08);
+  /* Títulos: la tipografía de la F1 (2011-2017). Los números se quedan en --font-family. */
+  --font-display: 'Titillium Web', 'Montserrat', system-ui, sans-serif;
+  --shadow-sm: 0 1px 3px rgb(0 0 0 / 0.45);
 }
 
-/* Colores de gráficas: validados para daltonismo (ΔE ≥ 8) y contraste ≥ 3:1 sobre blanco. */
+/* Colores de gráficas: validados sobre --color-surface (#141d23) para daltonismo (ΔE ≥ 8)
+   y contraste ≥ 3:1. */
 :root {
-  --chart-win: #2a78d6;
-  --chart-loss: #e34948;
-  --chart-bar: #2a78d6;
-  --chart-grid: #e5e7eb;
+  --chart-win: #3987e5;
+  --chart-loss: #e66767;
+  --chart-bar: #2fa3c9;
+  --chart-grid: #24323b;
+  --chart-baseline: #5b6d77;
 }

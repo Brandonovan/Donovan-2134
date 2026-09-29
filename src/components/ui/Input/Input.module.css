@@ -14,7 +14,20 @@
   padding: var(--space-sm) var(--space-md);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
+  background-color: var(--color-surface-raised);
+  color: var(--color-text);
   font: inherit;
+}
+
+.input::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* Evita el fondo amarillo/blanco que Chrome pone a los campos autocompletados. */
+.input:-webkit-autofill {
+  -webkit-text-fill-color: var(--color-text);
+  box-shadow: 0 0 0 100px var(--color-surface-raised) inset;
+  caret-color: var(--color-text);
 }
 
 .input:focus {

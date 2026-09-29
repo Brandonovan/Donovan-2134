@@ -1,5 +1,6 @@
-import logoIcon from '@/assets/brand/logo-icon.png'
-import logoFull from '@/assets/brand/logo.png'
+// Versiones claras del logo, para el tema oscuro.
+import logoIcon from '@/assets/brand/logo-icon-dark.png'
+import logoFull from '@/assets/brand/logo-dark.png'
 import snailpayIcon from '@/assets/brand/snailpay-icon.png'
 import snailpayFull from '@/assets/brand/snailpay.png'
 import styles from './Logo.module.css'

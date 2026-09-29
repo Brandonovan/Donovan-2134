@@ -1,8 +1,12 @@
 import { useAuth } from '@/features/auth'
 import {
-  BET_STATS,
+  BEST_ODDS,
+  BET_HISTORY,
+  BestOdds,
   BetsSummary,
-  SEASON_RESULTS,
+  computeBetStats,
+  ProfitHistory,
+  SEASON_RACES,
   SeasonStandings,
   UPCOMING_RACES,
   UpcomingRaces,
@@ -15,10 +19,14 @@ export function LobbyPage() {
   return (
     <div className={styles.page}>
       <h1>¡Hola, {user.name}!</h1>
-      <div className={styles.charts}>
-        <BetsSummary stats={BET_STATS} />
-        <SeasonStandings results={SEASON_RESULTS} />
-      </div>
+      <section className={styles.grid} aria-label="Tus apuestas">
+        <BetsSummary stats={computeBetStats(BET_HISTORY)} />
+        <ProfitHistory history={BET_HISTORY} />
+      </section>
+      <section className={styles.grid} aria-label="Temporada">
+        <SeasonStandings races={SEASON_RACES} />
+        <BestOdds odds={BEST_ODDS} />
+      </section>
       <UpcomingRaces races={UPCOMING_RACES} />
     </div>
   )

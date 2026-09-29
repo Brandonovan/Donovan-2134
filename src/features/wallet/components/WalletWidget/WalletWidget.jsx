@@ -1,4 +1,4 @@
-import { Logo } from '@/components/ui/Logo/Logo'
+import snailpayIcon from '@/assets/brand/snailpay-icon.png'
 import { formatCurrency } from '@/utils/formatCurrency'
 import styles from './WalletWidget.module.css'
 
@@ -11,7 +11,12 @@ export function WalletWidget({ balance, onTopUp }) {
         <span className={styles.amount}>{formatCurrency(balance)}</span>
       </div>
       <button type="button" className={styles.topUp} onClick={onTopUp}>
-        <Logo brand="snailpay" variant="icon" className={styles.logo} decorative />
+        {/* El logotipo se usa como máscara para teñirlo con el color del texto del botón. */}
+        <span
+          className={styles.logo}
+          style={{ maskImage: `url(${snailpayIcon})`, WebkitMaskImage: `url(${snailpayIcon})` }}
+          aria-hidden="true"
+        />
         <span>Cargar saldo</span>
       </button>
     </div>

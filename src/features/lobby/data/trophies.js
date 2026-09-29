@@ -1,6 +1,8 @@
 import copaArce from '@/assets/trophies/copa-arce.png'
 import copaHoja from '@/assets/trophies/copa-hoja.png'
+import copaHuerto from '@/assets/trophies/copa-huerto.png'
 import copaLechuga from '@/assets/trophies/copa-lechuga.png'
+import copaMusgo from '@/assets/trophies/copa-musgo.png'
 import copaRocio from '@/assets/trophies/copa-rocio.png'
 
 export const TROPHIES = {
@@ -8,4 +10,6 @@ export const TROPHIES = {
   arce: { src: copaArce, name: 'Copa del Jardín' },
   lechuga: { src: copaLechuga, name: 'Copa Lechuga' },
   rocio: { src: copaRocio, name: 'Copa del Rocío' },
+  huerto: { src: copaHuerto, name: 'Copa del Huerto' },
+  musgo: { src: copaMusgo, name: 'Copa del Musgo' },
 }
