@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/Button/Button'
 import { Logo } from '@/components/ui/Logo/Logo'
 import { ROUTES } from '@/constants/routes'
 import { useAuth } from '@/features/auth'
-import { formatCurrency } from '@/utils/formatCurrency'
+import { WalletWidget } from '@/features/wallet'
 import styles from './AppLayout.module.css'
 
 export function AppLayout() {
@@ -24,8 +24,7 @@ export function AppLayout() {
           </NavLink>
         </nav>
         <div className={styles.user}>
-          <span className={styles.balance}>{formatCurrency(user.balance)}</span>
-          <span>{user.name}</span>
+          <WalletWidget balance={user.balance} />
           <Button variant="secondary" onClick={logout}>
             Salir
           </Button>
