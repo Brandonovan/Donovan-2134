@@ -1,0 +1,88 @@
+.loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-md);
+  min-height: 60vh;
+  text-align: center;
+  opacity: 0;
+  animation: appear 0.3s ease-out 0.15s forwards;
+}
+
+.logo {
+  width: 125px;
+  height: 90px;
+  background-color: var(--color-gold);
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+.track {
+  position: relative;
+  width: 180px;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background-color: var(--color-surface-raised);
+}
+
+.bar {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 40%;
+  border-radius: inherit;
+  background-color: var(--color-gold);
+  animation: slide 1.2s ease-in-out infinite;
+}
+
+.title {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.subtitle {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+@keyframes appear {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.55;
+    transform: scale(0.96);
+  }
+}
+
+@keyframes slide {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loader {
+    animation: none;
+    opacity: 1;
+  }
+
+  .logo,
+  .bar {
+    animation: none;
+  }
+
+  .bar {
+    width: 100%;
+    opacity: 0.6;
+  }
+}

@@ -6,6 +6,7 @@ import { LobbyPage } from '@/pages/LobbyPage/LobbyPage'
 import { LoginPage } from '@/pages/LoginPage/LoginPage'
 import { NotFoundPage } from '@/pages/NotFoundPage/NotFoundPage'
 import { RegisterPage } from '@/pages/RegisterPage/RegisterPage'
+import { SnailPayPage } from '@/pages/SnailPayPage/SnailPayPage'
 import { ProtectedRoute } from '@/routes/ProtectedRoute'
 import { PublicRoute } from '@/routes/PublicRoute'
 
@@ -28,7 +29,10 @@ export const router = createBrowserRouter([
     children: [
       {
         element: <AppLayout />,
-        children: [{ path: ROUTES.LOBBY, element: <LobbyPage /> }],
+        children: [
+          { path: ROUTES.LOBBY, element: <LobbyPage /> },
+          { path: ROUTES.SNAILPAY, element: <SnailPayPage /> },
+        ],
       },
     ],
   },

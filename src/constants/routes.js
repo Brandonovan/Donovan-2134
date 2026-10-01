@@ -3,4 +3,5 @@ export const ROUTES = {
   REGISTER: '/register',
   LOGIN: '/login',
   LOBBY: '/lobby',
+  SNAILPAY: '/snailpay',
 }

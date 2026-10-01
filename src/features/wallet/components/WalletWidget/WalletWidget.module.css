@@ -45,6 +45,7 @@
   font-size: 0.875rem;
   font-weight: 700;
   white-space: nowrap;
+  text-decoration: none;
   cursor: pointer;
   transition: filter 0.15s, box-shadow 0.15s, transform 0.15s;
 }

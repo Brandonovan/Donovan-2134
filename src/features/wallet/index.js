@@ -1,1 +1,8 @@
+export { BalanceCard } from './components/BalanceCard/BalanceCard'
+export { SnailPayLoader } from './components/SnailPayLoader/SnailPayLoader'
+export { TransactionHistory } from './components/TransactionHistory/TransactionHistory'
+export { WalletOperation } from './components/WalletOperation/WalletOperation'
 export { WalletWidget } from './components/WalletWidget/WalletWidget'
+export { WalletProvider } from './context/WalletProvider'
+export { useWallet } from './hooks/useWallet'
+export { getTransactions } from './services/walletService'

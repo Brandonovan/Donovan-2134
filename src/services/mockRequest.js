@@ -6,8 +6,17 @@ export const USE_MOCKS = import.meta.env.VITE_USE_MOCKS !== 'false'
 
 // Simula la respuesta de un endpoint: latencia de red y una copia nueva de los
 // datos en cada llamada, como si llegaran deserializados de un JSON.
-export function mockRequest(data, { delay = MOCK_DELAY_MS } = {}) {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(structuredClone(data)), delay)
+// `response` puede ser el dato o una función que lo calcula; si lanza un error,
+// la promesa se rechaza como lo haría una respuesta 4xx.
+export function mockRequest(response, { delay = MOCK_DELAY_MS } = {}) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      try {
+        const data = typeof response === 'function' ? response() : response
+        resolve(structuredClone(data))
+      } catch (error) {
+        reject(error)
+      }
+    }, delay)
   })
 }

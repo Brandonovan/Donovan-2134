@@ -22,5 +22,13 @@ export function useRequest(request) {
     setAttempt((count) => count + 1)
   }, [])
 
-  return { ...state, retry }
+  // Para actualizar los datos localmente tras una mutación, sin volver a pedirlos.
+  const setData = useCallback((updater) => {
+    setState((current) => ({
+      ...current,
+      data: typeof updater === 'function' ? updater(current.data) : updater,
+    }))
+  }, [])
+
+  return { ...state, retry, setData }
 }
