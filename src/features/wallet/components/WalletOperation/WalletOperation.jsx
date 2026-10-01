@@ -6,6 +6,7 @@ import { SegmentedControl } from '@/components/ui/SegmentedControl/SegmentedCont
 import { formatCurrency, formatSignedCurrency } from '@/utils/formatCurrency'
 import { useWallet } from '../../hooks/useWallet'
 import { AMOUNT_LIMITS, parseAmount, sanitizeAmount, validateAmount } from '../../utils/amount'
+import { OperationDialog } from '../OperationDialog/OperationDialog'
 import styles from './WalletOperation.module.css'
 
 const MODES = [
@@ -22,9 +23,6 @@ const COPY = {
     hint: `Mínimo ${formatCurrency(AMOUNT_LIMITS.min)} · máximo ${formatCurrency(AMOUNT_LIMITS.maxDeposit)}`,
     concept: 'Recarga',
     action: 'Recargar',
-    pending: 'Procesando recarga…',
-    destination: (wallet) => `Se cobrará a tu ${wallet.paymentMethod}`,
-    done: (amount, balance) => `Recargaste ${amount}. Tu nuevo saldo es ${balance}.`,
   },
   withdrawal: {
     sign: -1,
@@ -32,56 +30,65 @@ const COPY = {
     hint: `Mínimo ${formatCurrency(AMOUNT_LIMITS.min)}`,
     concept: 'Retiro',
     action: 'Retirar',
-    pending: 'Procesando retiro…',
-    destination: (wallet) => `Se depositará en tu ${wallet.payoutAccount}`,
-    done: (amount, balance) => `Retiraste ${amount}. Tu nuevo saldo es ${balance}.`,
   },
 }
 
-export function WalletOperation({ onComplete }) {
-  const { wallet, loading, error, retry, deposit, withdraw } = useWallet()
-  const [mode, setMode] = useState('deposit')
+// La operación es controlada: el modo y el método (tarjeta o cuenta) se eligen
+// en la tarjeta de métodos y llegan aquí ya resueltos. Este formulario solo arma
+// el monto: la confirmación, el CVV y el comprobante viven en OperationDialog.
+export function WalletOperation({ mode, onModeChange, card, account, onComplete }) {
+  const { wallet, loading, error, retry, deposit, withdraw, updateBalance } = useWallet()
   const [value, setValue] = useState('')
   const [fieldError, setFieldError] = useState()
-  const [submitError, setSubmitError] = useState('')
-  const [success, setSuccess] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [confirming, setConfirming] = useState(false)
 
   const copy = COPY[mode]
   const balance = wallet?.balance ?? 0
   const amount = parseAmount(value)
-  const balanceAfter = balance + copy.sign * amount
+  // Si el monto pasa el límite (saldo al retirar, tope al recargar) no se calcula nada:
+  // el resumen queda en ceros y el error se muestra de inmediato, sin esperar al envío.
+  const maxAmount = mode === 'withdrawal' ? balance : AMOUNT_LIMITS.maxDeposit
+  const overLimit = amount > maxAmount
+  const operationAmount = overLimit ? 0 : amount
+  const balanceAfter = overLimit ? 0 : balance + copy.sign * amount
+  const amountError = fieldError ?? (overLimit ? validateAmount(amount, mode, balance) : undefined)
+
+  const needsMethod = mode === 'deposit' ? !card : !account
+  const canSubmit = amount >= AMOUNT_LIMITS.min && !overLimit && !needsMethod
 
   function changeAmount(next) {
     setValue(next)
     setFieldError(undefined)
-    setSubmitError('')
-    setSuccess('')
   }
 
   function changeMode(next) {
-    setMode(next)
+    onModeChange(next)
     changeAmount('')
   }
 
   async function handleSubmit(event) {
     event.preventDefault()
+    if (needsMethod) return
+
     const validationError = validateAmount(amount, mode, balance)
     setFieldError(validationError)
-    if (validationError) return
+    if (!validationError) setConfirming(true)
+  }
 
-    setIsSubmitting(true)
-    setSubmitError('')
-    try {
-      const transaction = await (mode === 'deposit' ? deposit : withdraw)(amount)
-      onComplete?.(transaction)
-      setValue('')
-      setSuccess(copy.done(formatCurrency(amount), formatCurrency(balanceAfter)))
-    } catch (requestError) {
-      setSubmitError(requestError.message)
-    } finally {
-      setIsSubmitting(false)
-    }
+  // Lo llama el diálogo; si falla, el error se queda en el diálogo.
+  function confirm(cvv) {
+    return mode === 'deposit' ? deposit(amount, { card, cvv }) : withdraw(amount, { account })
+  }
+
+  // result = { balance, transaction } si la operación se completó, null si se canceló.
+  // El saldo y el historial se actualizan aquí, al cerrar el comprobante, para que
+  // el usuario vea el cambio en vez de que ocurra detrás del diálogo.
+  function closeDialog(result) {
+    setConfirming(false)
+    if (!result) return
+    updateBalance(result.balance)
+    onComplete?.(result.transaction)
+    setValue('')
   }
 
   return (
@@ -97,9 +104,8 @@ export function WalletOperation({ onComplete }) {
           autoComplete="off"
           value={value}
           onChange={(event) => changeAmount(sanitizeAmount(event.target.value))}
-          error={fieldError}
+          error={amountError}
           hint={copy.hint}
-          disabled={isSubmitting}
         />
 
         <div className={styles.quick} role="group" aria-label="Montos rápidos">
@@ -110,7 +116,6 @@ export function WalletOperation({ onComplete }) {
               className={styles.chip}
               aria-pressed={amount === quick}
               onClick={() => changeAmount(String(quick))}
-              disabled={isSubmitting}
             >
               {formatCurrency(quick).replace(/\.00$/, '')}
             </button>
@@ -121,7 +126,7 @@ export function WalletOperation({ onComplete }) {
               className={styles.chip}
               aria-pressed={amount > 0 && amount === balance}
               onClick={() => changeAmount(String(balance))}
-              disabled={isSubmitting || balance === 0}
+              disabled={balance === 0}
             >
               Todo
             </button>
@@ -135,29 +140,28 @@ export function WalletOperation({ onComplete }) {
           </div>
           <div>
             <dt>{copy.concept}</dt>
-            <dd>{formatSignedCurrency(copy.sign * amount)}</dd>
+            <dd>{formatSignedCurrency(copy.sign * operationAmount)}</dd>
           </div>
           <div className={styles.total}>
             <dt>Saldo final</dt>
-            <dd className={balanceAfter < 0 ? styles.negative : undefined}>{formatCurrency(balanceAfter)}</dd>
+            <dd>{formatCurrency(balanceAfter)}</dd>
           </div>
         </dl>
 
-        {wallet && <p className={styles.destination}>{copy.destination(wallet)}</p>}
-
-        {submitError && (
-          <p className={styles.error} role="alert">
-            {submitError}
-          </p>
-        )}
-        <p className={styles.success} role="status">
-          {success}
-        </p>
-
-        <Button type="submit" className={styles.submit} disabled={isSubmitting}>
-          {isSubmitting ? copy.pending : `${copy.action}${amount > 0 ? ` ${formatCurrency(amount)}` : ''}`}
+        <Button type="submit" className={styles.submit} disabled={!canSubmit}>
+          {`${copy.action}${operationAmount > 0 ? ` ${formatCurrency(operationAmount)}` : ''}`}
         </Button>
       </form>
+
+      <OperationDialog
+        open={confirming}
+        mode={mode}
+        method={mode === 'deposit' ? card : account}
+        amount={amount}
+        balanceAfter={balanceAfter}
+        onConfirm={confirm}
+        onClose={closeDialog}
+      />
     </ChartCard>
   )
 }

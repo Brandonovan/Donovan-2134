@@ -83,35 +83,6 @@
   font-weight: 700;
 }
 
-.summary .negative {
-  color: var(--color-negative);
-}
-
-.destination {
-  color: var(--color-text-muted);
-  font-size: 0.8rem;
-}
-
-.error {
-  padding: var(--space-sm) var(--space-md);
-  border-radius: var(--radius-sm);
-  background-color: rgb(240 113 113 / 0.12);
-  color: var(--color-danger);
-  font-size: 0.875rem;
-}
-
-.success:empty {
-  display: none;
-}
-
-.success {
-  padding: var(--space-sm) var(--space-md);
-  border-radius: var(--radius-sm);
-  background-color: rgb(62 207 115 / 0.12);
-  color: var(--color-positive);
-  font-size: 0.875rem;
-}
-
 .submit {
   padding-block: var(--space-md);
 }

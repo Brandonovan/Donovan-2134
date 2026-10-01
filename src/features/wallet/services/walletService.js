@@ -1,6 +1,8 @@
 import { apiClient, getToken } from '@/services/apiClient'
 import { mockRequest, USE_MOCKS } from '@/services/mockRequest'
 import { TRANSACTIONS, WALLET } from '../mocks/wallet'
+import { cardLabel } from '../utils/card'
+import { accountLabel } from '../utils/clabe'
 
 // --- Simulación del backend ---------------------------------------------
 // Una billetera por sesión (el backend real la identifica por el token),
@@ -23,18 +25,25 @@ function saveFakeWallet(wallet) {
   localStorage.setItem(FAKE_WALLETS_KEY, JSON.stringify({ ...readFakeWallets(), [getToken()]: wallet }))
 }
 
-function fakeMovement(type, amount) {
+// CVV para probar un cobro rechazado por el banco.
+const FAKE_DECLINED_CVV = '000'
+
+function fakeMovement(type, amount, { card, cvv, account }) {
   return () => {
     const { transactions, ...wallet } = readFakeWallet()
     if (type === 'withdrawal' && amount > wallet.balance) {
       throw new Error('No tienes saldo suficiente para este retiro')
+    }
+    // El CVV solo se usa para autorizar este cobro; no se guarda en ningún lado.
+    if (type === 'deposit' && cvv === FAKE_DECLINED_CVV) {
+      throw new Error('Tu banco rechazó el cobro. Revisa los datos o usa otra tarjeta.')
     }
 
     const transaction = {
       id: crypto.randomUUID(),
       type,
       amount,
-      method: type === 'deposit' ? wallet.paymentMethod : wallet.payoutAccount,
+      method: type === 'deposit' ? cardLabel(card) : `CLABE ${accountLabel(account)}`,
       createdAt: new Date().toISOString(),
     }
     const balance = Math.round((wallet.balance + (type === 'deposit' ? amount : -amount)) * 100) / 100
@@ -45,7 +54,7 @@ function fakeMovement(type, amount) {
 }
 // -------------------------------------------------------------------------
 
-// → { balance, paymentMethod, payoutAccount }
+// → { balance }
 export function getWallet() {
   if (!USE_MOCKS) return apiClient('/wallet')
   return mockRequest(() => {
@@ -60,14 +69,21 @@ export function getTransactions() {
   return mockRequest(() => readFakeWallet().transactions)
 }
 
+// card = tarjeta guardada en el navegador; cvv = el que el usuario escribió para este cobro.
+// Cuando haya tokenización, se enviará el token de la tarjeta en lugar de su id.
 // → { balance, transaction }
-export function deposit(amount) {
-  if (!USE_MOCKS) return apiClient('/wallet/deposits', { method: 'POST', body: { amount } })
-  return mockRequest(fakeMovement('deposit', amount), { delay: 1200 })
+export function deposit(amount, { card, cvv }) {
+  if (!USE_MOCKS) {
+    return apiClient('/wallet/deposits', { method: 'POST', body: { amount, cardId: card.id, cvv } })
+  }
+  return mockRequest(fakeMovement('deposit', amount, { card, cvv }), { delay: 1200 })
 }
 
+// account = cuenta CLABE registrada a la que se enviará el retiro por SPEI.
 // → { balance, transaction }
-export function withdraw(amount) {
-  if (!USE_MOCKS) return apiClient('/wallet/withdrawals', { method: 'POST', body: { amount } })
-  return mockRequest(fakeMovement('withdrawal', amount), { delay: 1200 })
+export function withdraw(amount, { account }) {
+  if (!USE_MOCKS) {
+    return apiClient('/wallet/withdrawals', { method: 'POST', body: { amount, accountId: account.id } })
+  }
+  return mockRequest(fakeMovement('withdrawal', amount, { account }), { delay: 1200 })
 }
