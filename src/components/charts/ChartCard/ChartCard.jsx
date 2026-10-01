@@ -1,16 +1,46 @@
 import styles from './ChartCard.module.css'
 
+function CardBody({ loading, error, onRetry, children }) {
+  if (loading) {
+    return (
+      <div className={styles.skeleton} role="status">
+        <span className={styles.srOnly}>Cargando…</span>
+      </div>
+    )
+  }
+  if (error) {
+    return (
+      <div className={styles.error} role="alert">
+        <p>No pudimos cargar esta información.</p>
+        {onRetry && (
+          <button type="button" className={styles.retry} onClick={onRetry}>
+            Reintentar
+          </button>
+        )}
+      </div>
+    )
+  }
+  return children
+}
+
 // Tarjeta para gráficas. `table` es la vista en tabla de los mismos datos:
 // ningún valor debe depender solo del color o del hover.
-export function ChartCard({ title, description, table, children }) {
+// Mientras `loading` o `error` estén activos, muestra su estado en lugar de `children`.
+export function ChartCard({ title, description, table, loading, error, onRetry, children }) {
+  const ready = !loading && !error
+
   return (
-    <section className={styles.card}>
+    <section className={styles.card} aria-busy={loading || undefined}>
       <header className={styles.header}>
         <h2 className={styles.title}>{title}</h2>
         {description && <p className={styles.description}>{description}</p>}
       </header>
-      <div className={styles.body}>{children}</div>
-      {table && (
+      <div className={styles.body}>
+        <CardBody loading={loading} error={error} onRetry={onRetry}>
+          {children}
+        </CardBody>
+      </div>
+      {ready && table && (
         <details className={styles.details}>
           <summary>Ver datos</summary>
           <table className={styles.table}>

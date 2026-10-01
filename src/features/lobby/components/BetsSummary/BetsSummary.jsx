@@ -1,7 +1,9 @@
 import { ChartCard } from '@/components/charts/ChartCard/ChartCard'
 import { DonutChart } from '@/components/charts/DonutChart/DonutChart'
+import { computeBetStats } from '../../utils/bets'
 
-export function BetsSummary({ stats }) {
+export function BetsSummary({ history = [], loading, error, onRetry }) {
+  const stats = computeBetStats(history)
   const total = stats.won + stats.lost
   const winRate = total === 0 ? 0 : Math.round((stats.won / total) * 100)
 
@@ -11,7 +13,7 @@ export function BetsSummary({ stats }) {
   ]
 
   return (
-    <ChartCard title="Tu porcentaje de apuestas">
+    <ChartCard title="Tu porcentaje de apuestas" loading={loading} error={error} onRetry={onRetry}>
       {total > 0 ? (
         <DonutChart
           segments={segments}

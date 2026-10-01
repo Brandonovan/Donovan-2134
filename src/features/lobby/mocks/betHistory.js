@@ -1,4 +1,4 @@
-// Datos de ejemplo mientras no exista el backend: historial de apuestas del usuario.
+// Mock de GET /me/bets: historial de apuestas del usuario.
 // De 1 a 3 apuestas en algunos días. odds = momio decimal de esa carrera;
 // won = el caracol llegó en 1.er lugar (en septiembre coincide con SEASON_RACES).
 export const BET_HISTORY = [

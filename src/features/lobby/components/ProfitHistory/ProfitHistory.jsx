@@ -41,7 +41,7 @@ function PointTooltip({ point }) {
   )
 }
 
-export function ProfitHistory({ history }) {
+export function ProfitHistory({ history = [], loading, error, onRetry }) {
   // La hora de referencia se fija al montar, para que los rangos no cambien entre renders.
   const [now] = useState(() => new Date())
   const [range, setRange] = useState('90')
@@ -54,7 +54,7 @@ export function ProfitHistory({ history }) {
   const isUp = net >= 0
 
   return (
-    <ChartCard title="Tus ganancias">
+    <ChartCard title="Tus ganancias" loading={loading} error={error} onRetry={onRetry}>
       <div className={styles.header}>
         <div>
           <p className={styles.net}>{formatSignedCurrency(net)}</p>

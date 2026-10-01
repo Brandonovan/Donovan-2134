@@ -44,7 +44,7 @@ function detailsFor(row) {
   ].join(' · ')
 }
 
-export function SeasonStandings({ races }) {
+export function SeasonStandings({ races = [], loading, error, onRetry }) {
   const [metric, setMetric] = useState('points')
   const [showAll, setShowAll] = useState(false)
 
@@ -53,7 +53,13 @@ export function SeasonStandings({ races }) {
   const { description, format } = METRICS[metric]
 
   return (
-    <ChartCard title="Mejores caracoles de la temporada" description={description}>
+    <ChartCard
+      title="Mejores caracoles de la temporada"
+      description={description}
+      loading={loading}
+      error={error}
+      onRetry={onRetry}
+    >
       <div className={styles.content}>
         <SegmentedControl
           label="Ordenar por"

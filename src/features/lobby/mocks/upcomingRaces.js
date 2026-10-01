@@ -1,4 +1,4 @@
-// Datos de ejemplo mientras no exista el backend: las 6 carreras de mañana.
+// Mock de GET /races/upcoming: las 6 carreras de mañana.
 export const UPCOMING_RACES = [
   {
     id: 1,

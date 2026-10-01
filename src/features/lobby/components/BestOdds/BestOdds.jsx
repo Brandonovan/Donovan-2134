@@ -7,9 +7,15 @@ const STAKE = 100
 
 const wholeCurrency = (amount) => formatCurrency(amount).replace(/\.00$/, '')
 
-export function BestOdds({ odds }) {
+export function BestOdds({ odds = [], loading, error, onRetry }) {
   return (
-    <ChartCard title="Mejores momios" description={`Lo que cobrarías apostando ${wholeCurrency(STAKE)}`}>
+    <ChartCard
+      title="Mejores momios"
+      description={`Lo que cobrarías apostando ${wholeCurrency(STAKE)}`}
+      loading={loading}
+      error={error}
+      onRetry={onRetry}
+    >
       {odds.length === 0 ? (
         <p className={styles.empty}>Aún no hay momios para las próximas carreras.</p>
       ) : (

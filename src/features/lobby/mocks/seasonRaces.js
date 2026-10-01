@@ -1,4 +1,4 @@
-// Datos de ejemplo mientras no exista el backend.
+// Mock de GET /seasons/current/races.
 // Temporada actual (septiembre): 6 carreras diarias con los 6 caracoles.
 // finish = orden de llegada, del 1.º al 6.º lugar.
 export const SEASON_RACES = [

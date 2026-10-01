@@ -1,4 +1,4 @@
-// Datos de ejemplo: momios destacados para las carreras de mañana.
+// Mock de GET /odds/best: momios destacados para las carreras de mañana.
 // odds = momio americano; payout = lo que se cobra por una apuesta de $100 si gana.
 export const BEST_ODDS = [
   { id: 1, snail: 'Snailson Mandela', race: 'Carrera de la Hoja', odds: '+865', payout: 965 },
