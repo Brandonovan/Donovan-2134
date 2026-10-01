@@ -38,7 +38,8 @@ function groupByMonth(transactions) {
   return groups
 }
 
-export function TransactionHistory({ transactions = [], loading, error, onRetry }) {
+// highlightId = movimiento recién hecho; se resalta un momento al aparecer.
+export function TransactionHistory({ transactions = [], highlightId, loading, error, onRetry }) {
   const [filter, setFilter] = useState('all')
   const [showAll, setShowAll] = useState(false)
 
@@ -60,7 +61,10 @@ export function TransactionHistory({ transactions = [], loading, error, onRetry 
                 {group.items.map((transaction) => {
                   const type = TYPES[transaction.type]
                   return (
-                    <li key={transaction.id} className={styles.row}>
+                    <li
+                      key={transaction.id}
+                      className={`${styles.row} ${transaction.id === highlightId ? styles.fresh : ''}`}
+                    >
                       <span className={`${styles.icon} ${styles[transaction.type]}`} aria-hidden="true">
                         {type.icon}
                       </span>

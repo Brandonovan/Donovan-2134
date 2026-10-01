@@ -104,3 +104,20 @@
   outline-offset: 2px;
   border-radius: var(--radius-sm);
 }
+
+.fresh {
+  animation: fresh 2.5s ease-out;
+}
+
+@keyframes fresh {
+  0%,
+  40% {
+    background-color: rgb(91 188 220 / 0.14);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fresh {
+    animation-duration: 0.01s;
+  }
+}
