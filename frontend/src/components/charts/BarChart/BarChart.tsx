@@ -1,16 +1,31 @@
+import type { ReactNode } from 'react'
 import { useLayoutEffect, useRef } from 'react'
 import styles from './BarChart.module.css'
 
 const REORDER_MS = 450
 
-function prefersReducedMotion() {
+export type BarDatum = {
+  id: string
+  label: string
+  fullLabel?: string
+  value: number
+  details?: ReactNode
+}
+
+type Props = {
+  data: BarDatum[]
+  formatValue?: (value: number) => string
+  ariaLabel: string
+}
+
+function prefersReducedMotion(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
 // Anima las filas cuando cambian de posición (técnica FLIP) y hace aparecer las nuevas.
 function useRowAnimations() {
-  const rows = useRef(new Map())
-  const previousTops = useRef(new Map())
+  const rows = useRef(new Map<string, HTMLElement>())
+  const previousTops = useRef(new Map<string, number>())
   const hasRendered = useRef(false)
 
   useLayoutEffect(() => {
@@ -40,7 +55,7 @@ function useRowAnimations() {
     hasRendered.current = true
   })
 
-  return (id) => (element) => {
+  return (id: string) => (element: HTMLElement | null) => {
     if (element) rows.current.set(id, element)
     else rows.current.delete(id)
   }
@@ -49,7 +64,7 @@ function useRowAnimations() {
 // Barras horizontales de una sola serie: los nombres largos se leen sin rotar.
 // data: [{ id, label, fullLabel?, value, details? }] ya ordenado.
 // `fullLabel` es el nombre completo cuando `label` viene recortado; se muestra en el tooltip.
-export function BarChart({ data, formatValue = String, ariaLabel }) {
+export function BarChart({ data, formatValue = String, ariaLabel }: Props) {
   const registerRow = useRowAnimations()
   const max = Math.max(...data.map((item) => item.value), 1)
 

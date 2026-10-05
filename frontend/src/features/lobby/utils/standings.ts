@@ -1,24 +1,26 @@
 // Sistema de puntos de la Fórmula 1: del 1.º al 10.º lugar (con 6 caracoles, puntúan todos).
+import type { SeasonRace, Standing } from '../types'
 export const F1_POINTS = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
 
-export function pointsForPosition(position) {
+export function pointsForPosition(position: number): number {
   return F1_POINTS[position - 1] ?? 0
 }
 
 // races: [{ finish: [1.º, 2.º, …] }] → [{ snail, positions: [posición en cada carrera] }]
-function positionsBySnail(races) {
-  const bySnail = new Map()
+function positionsBySnail(races: SeasonRace[]): { snail: string; positions: number[] }[] {
+  const bySnail = new Map<string, number[]>()
   races.forEach(({ finish }) => {
     finish.forEach((snail, index) => {
-      if (!bySnail.has(snail)) bySnail.set(snail, [])
-      bySnail.get(snail).push(index + 1)
+      const posiciones = bySnail.get(snail) ?? []
+      posiciones.push(index + 1)
+      bySnail.set(snail, posiciones)
     })
   })
   return [...bySnail].map(([snail, positions]) => ({ snail, positions }))
 }
 
 // Igual que en la F1: ordena por puntos y desempata por victorias y después por segundos lugares.
-export function computeStandings(races) {
+export function computeStandings(races: SeasonRace[]): Standing[] {
   return positionsBySnail(races)
     .map(({ snail, positions }) => {
       const finished = positions.filter((position) => position != null)

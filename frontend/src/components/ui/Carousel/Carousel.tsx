@@ -1,13 +1,30 @@
+import type { KeyboardEvent, ReactNode } from 'react'
 import { useRef, useState } from 'react'
 import styles from './Carousel.module.css'
 
-export function Carousel({ items, renderItem, getKey, label, itemLabel = 'Elemento' }) {
-  const trackRef = useRef(null)
+type Props<T> = {
+  items: T[]
+  renderItem: (item: T) => ReactNode
+  getKey: (item: T) => string | number
+  label: string
+  itemLabel?: string
+}
+
+export function Carousel<T>({
+  items,
+  renderItem,
+  getKey,
+  label,
+  itemLabel = 'Elemento',
+}: Props<T>) {
+  const trackRef = useRef<HTMLDivElement>(null)
   const [activeIndex, setActiveIndex] = useState(0)
   const lastIndex = items.length - 1
 
-  function goTo(index) {
+  function goTo(index: number) {
     const track = trackRef.current
+    if (!track) return
+
     const target = Math.max(0, Math.min(index, lastIndex))
     track.scrollTo({ left: target * track.clientWidth })
   }
@@ -15,10 +32,12 @@ export function Carousel({ items, renderItem, getKey, label, itemLabel = 'Elemen
   // El índice activo sale del scroll, así funciona igual con flechas, puntos o deslizando.
   function handleScroll() {
     const track = trackRef.current
+    if (!track) return
+
     setActiveIndex(Math.round(track.scrollLeft / track.clientWidth))
   }
 
-  function handleKeyDown(event) {
+  function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     if (event.key === 'ArrowRight') {
       event.preventDefault()
       goTo(activeIndex + 1)

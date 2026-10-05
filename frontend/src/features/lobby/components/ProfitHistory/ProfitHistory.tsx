@@ -1,3 +1,4 @@
+import type { Bet, ProfitPoint } from '../../types'
 import { useState } from 'react'
 import { ChartCard } from '@/components/charts/ChartCard/ChartCard'
 import { LineChart } from '@/components/charts/LineChart/LineChart'
@@ -11,13 +12,15 @@ import styles from './ProfitHistory.module.css'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
+type Range = '30' | '90' | 'all'
+
 const RANGES = [
   { value: '30', label: '30 días', days: 30 },
   { value: '90', label: '90 días', days: 90 },
   { value: 'all', label: 'Todo', days: null },
-]
+] satisfies { value: Range; label: string; days: number | null }[]
 
-function PointTooltip({ point }) {
+function PointTooltip({ point }: { point: ProfitPoint }) {
   if (!point.bet) {
     return (
       <>
@@ -41,11 +44,19 @@ function PointTooltip({ point }) {
   )
 }
 
-export function ProfitHistory({ history = [], loading, error, onRetry }) {
+type Props = {
+  history: Bet[] | undefined
+  loading?: boolean
+  error?: Error | null
+  onRetry?: () => void
+}
+
+export function ProfitHistory({ history = [], loading, error, onRetry }: Props) {
   // La hora de referencia se fija al montar, para que los rangos no cambien entre renders.
   const [now] = useState(() => new Date())
-  const [range, setRange] = useState('90')
-  const { days } = RANGES.find((option) => option.value === range)
+  const [range, setRange] = useState<Range>('90')
+  // El rango activo siempre sale de RANGES, pero el tipo no lo sabe.
+  const days = RANGES.find((option) => option.value === range)?.days ?? null
   const since = days ? new Date(now.getTime() - days * DAY_MS) : null
 
   const series = buildProfitSeries(history, since)

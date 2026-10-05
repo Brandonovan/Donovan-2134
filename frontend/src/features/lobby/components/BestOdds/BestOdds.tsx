@@ -1,3 +1,4 @@
+import type { BestOdd } from '../../types'
 import { ChartCard } from '@/components/charts/ChartCard/ChartCard'
 import { formatCurrency } from '@/utils/formatCurrency'
 import { shortenName } from '@/utils/shortenName'
@@ -5,9 +6,16 @@ import styles from './BestOdds.module.css'
 
 const STAKE = 100
 
-const wholeCurrency = (amount) => formatCurrency(amount).replace(/\.00$/, '')
+const wholeCurrency = (amount: number): string => formatCurrency(amount).replace(/\.00$/, '')
 
-export function BestOdds({ odds = [], loading, error, onRetry }) {
+type Props = {
+  odds: BestOdd[] | undefined
+  loading?: boolean
+  error?: Error | null
+  onRetry?: () => void
+}
+
+export function BestOdds({ odds = [], loading, error, onRetry }: Props) {
   return (
     <ChartCard
       title="Mejores momios"

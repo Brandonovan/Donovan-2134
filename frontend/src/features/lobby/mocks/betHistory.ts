@@ -1,7 +1,8 @@
 // Mock de GET /me/bets: historial de apuestas del usuario.
+import type { Bet } from '../types'
 // De 1 a 3 apuestas en algunos días. odds = momio decimal de esa carrera;
 // won = el caracol llegó en 1.er lugar (en septiembre coincide con SEASON_RACES).
-export const BET_HISTORY = [
+export const BET_HISTORY: Bet[] = [
   { id: 1, placedAt: '2026-06-16T16:36:00', race: 'Carrera del Musgo', snail: 'Turbo', amount: 200, odds: 3.8, won: false },
   { id: 2, placedAt: '2026-06-17T15:50:00', race: 'Gran Premio del Jardín', snail: 'Turbo', amount: 100, odds: 3.15, won: true },
   { id: 3, placedAt: '2026-06-19T10:56:00', race: 'Sprint del Huerto', snail: 'Jared Lento', amount: 100, odds: 6.05, won: false },

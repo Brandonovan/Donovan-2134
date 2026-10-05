@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { useState } from 'react'
 import styles from './DonutChart.module.css'
 
@@ -7,22 +8,44 @@ const STROKE = 26
 const GAP = 2
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS
 
-function toPercent(value, total) {
+export type DonutSegment = {
+  id: string
+  label: string
+  value: number
+  color: string
+  icon?: ReactNode
+}
+
+type Props = {
+  segments: DonutSegment[]
+  ariaLabel: string
+  totalLabel?: string
+}
+
+type Arc = DonutSegment & { length: number; offset: number; dash: number }
+
+function toPercent(value: number, total: number): number {
   return total === 0 ? 0 : Math.round((value / total) * 100)
 }
 
 // segments: [{ id, label, value, color, icon }]
 // El centro muestra el primer segmento; al pasar el cursor o enfocar, muestra el activo.
 // totalLabel (opcional) agrega una fila con el total al final de la leyenda.
-export function DonutChart({ segments, ariaLabel, totalLabel }) {
-  const [activeId, setActiveId] = useState(null)
+export function DonutChart({ segments, ariaLabel, totalLabel }: Props) {
+  const [activeId, setActiveId] = useState<string | null>(null)
+
+  // Sin segmentos no hay nada que dibujar. Antes el componente daba por hecho
+  // que siempre llegaba al menos uno; ahora lo dice.
+  if (segments.length === 0) return null
   const total = segments.reduce((sum, segment) => sum + segment.value, 0)
   const active = segments.find((segment) => segment.id === activeId) ?? segments[0]
+  if (!active) return null
 
   // Cada arco empieza donde terminó el anterior; el GAP deja 2px de separación entre ellos.
-  const arcs = segments.reduce((acc, segment) => {
+  const arcs = segments.reduce<Arc[]>((acc, segment) => {
     const length = total === 0 ? 0 : (segment.value / total) * CIRCUMFERENCE
-    const offset = acc.length > 0 ? acc.at(-1).offset + acc.at(-1).length : 0
+    const previo = acc.at(-1)
+    const offset = previo ? previo.offset + previo.length : 0
     return [...acc, { ...segment, length, offset, dash: Math.max(length - GAP, 0) }]
   }, [])
 

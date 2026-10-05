@@ -1,8 +1,16 @@
+import type { Bet } from '../../types'
 import { ChartCard } from '@/components/charts/ChartCard/ChartCard'
 import { DonutChart } from '@/components/charts/DonutChart/DonutChart'
 import { computeBetStats } from '../../utils/bets'
 
-export function BetsSummary({ history = [], loading, error, onRetry }) {
+type Props = {
+  history: Bet[] | undefined
+  loading?: boolean
+  error?: Error | null
+  onRetry?: () => void
+}
+
+export function BetsSummary({ history = [], loading, error, onRetry }: Props) {
   const stats = computeBetStats(history)
   const total = stats.won + stats.lost
   const winRate = total === 0 ? 0 : Math.round((stats.won / total) * 100)

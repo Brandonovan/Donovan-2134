@@ -1,6 +1,7 @@
 // Mock de GET /odds/best: momios destacados para las carreras de mañana.
+import type { BestOdd } from '../types'
 // odds = momio americano; payout = lo que se cobra por una apuesta de $100 si gana.
-export const BEST_ODDS = [
+export const BEST_ODDS: BestOdd[] = [
   { id: 1, snail: 'Snailson Mandela', race: 'Carrera de la Hoja', odds: '+865', payout: 965 },
   { id: 2, snail: 'Caracolman Domingo', race: 'Carrera de la Hoja', odds: '+275', payout: 375 },
   { id: 3, snail: 'Turbo', race: 'Sprint del Huerto', odds: '+275', payout: 375 },

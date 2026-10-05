@@ -10,7 +10,19 @@ const BRANDS = {
   snailpay: { name: 'Snailpay', full: snailpayFull, icon: snailpayIcon },
 }
 
-export function Logo({ brand = 'snailwin', variant = 'full', className = '', decorative = false }) {
+type Props = {
+  brand?: 'snailwin' | 'snailpay'
+  variant?: 'full' | 'icon'
+  className?: string
+  decorative?: boolean
+}
+
+export function Logo({
+  brand = 'snailwin',
+  variant = 'full',
+  className = '',
+  decorative = false,
+}: Props) {
   const { name, [variant]: src } = BRANDS[brand]
 
   return (

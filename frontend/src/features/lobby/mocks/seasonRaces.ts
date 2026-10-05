@@ -1,7 +1,8 @@
 // Mock de GET /seasons/current/races.
+import type { SeasonRace } from '../types'
 // Temporada actual (septiembre): 6 carreras diarias con los 6 caracoles.
 // finish = orden de llegada, del 1.º al 6.º lugar.
-export const SEASON_RACES = [
+export const SEASON_RACES: SeasonRace[] = [
   { id: 1, startsAt: '2026-09-01T10:00:00', name: 'Carrera de la Hoja', finish: ['Gary', 'Snailson Mandela', 'Turbo', 'Jared Lento', 'Caracolman Domingo', 'Conchita Benítez'] },
   { id: 2, startsAt: '2026-09-01T12:00:00', name: 'Sprint del Huerto', finish: ['Conchita Benítez', 'Turbo', 'Snailson Mandela', 'Jared Lento', 'Gary', 'Caracolman Domingo'] },
   { id: 3, startsAt: '2026-09-01T14:00:00', name: 'Copa Lechuga', finish: ['Turbo', 'Snailson Mandela', 'Conchita Benítez', 'Caracolman Domingo', 'Gary', 'Jared Lento'] },

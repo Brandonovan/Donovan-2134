@@ -1,3 +1,4 @@
+import type { SeasonRace, Standing } from '../../types'
 import { useState } from 'react'
 import { BarChart } from '@/components/charts/BarChart/BarChart'
 import { ChartCard } from '@/components/charts/ChartCard/ChartCard'
@@ -6,36 +7,41 @@ import { shortenName } from '@/utils/shortenName'
 import { computeStandings } from '../../utils/standings'
 import styles from './SeasonStandings.module.css'
 
+type Metric = 'points' | 'wins' | 'podiums'
+
 const TOP = 6
 
-const plural = (count, singular, pluralForm) => `${count} ${count === 1 ? singular : pluralForm}`
+const plural = (count: number, singular: string, pluralForm: string): string => `${count} ${count === 1 ? singular : pluralForm}`
 
-const METRICS = {
+const METRICS: Record<Metric, { label: string; description: string; format: (value: number) => string }> = {
   points: {
     label: 'Puntos',
     description: 'Puntaje de la temporada actual',
-    format: (value) => `${value} pts`,
+    format: (value: number) => `${value} pts`,
   },
   wins: {
     label: 'Victorias',
     description: 'Carreras terminadas en 1.er lugar',
-    format: (value) => plural(value, 'victoria', 'victorias'),
+    format: (value: number) => plural(value, 'victoria', 'victorias'),
   },
   podiums: {
     label: 'Podios',
     description: 'Carreras terminadas entre los 3 primeros',
-    format: (value) => plural(value, 'podio', 'podios'),
+    format: (value: number) => plural(value, 'podio', 'podios'),
   },
 }
 
-const METRIC_OPTIONS = Object.entries(METRICS).map(([value, { label }]) => ({ value, label }))
+const METRIC_OPTIONS = Object.entries(METRICS).map(([value, { label }]) => ({
+  value: value as Metric,
+  label,
+}))
 
 // Ordena por la métrica elegida; en empate, por puntos (el criterio oficial).
-function rankBy(standings, metric) {
+function rankBy(standings: Standing[], metric: Metric) {
   return [...standings].sort((a, b) => b[metric] - a[metric] || b.points - a.points)
 }
 
-function detailsFor(row) {
+function detailsFor(row: Standing) {
   return [
     `${row.points} pts`,
     plural(row.wins, 'victoria', 'victorias'),
@@ -44,8 +50,15 @@ function detailsFor(row) {
   ].join(' · ')
 }
 
-export function SeasonStandings({ races = [], loading, error, onRetry }) {
-  const [metric, setMetric] = useState('points')
+type Props = {
+  races: SeasonRace[] | undefined
+  loading?: boolean
+  error?: Error | null
+  onRetry?: () => void
+}
+
+export function SeasonStandings({ races = [], loading, error, onRetry }: Props) {
+  const [metric, setMetric] = useState<Metric>('points')
   const [showAll, setShowAll] = useState(false)
 
   const ranked = rankBy(computeStandings(races), metric)

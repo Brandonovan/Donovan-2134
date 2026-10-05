@@ -1,9 +1,15 @@
+import type { UpcomingRace } from '../../types'
 import { Button } from '@/components/ui/Button/Button'
 import { formatDateTime } from '@/utils/formatDateTime'
 import { TROPHIES } from '../../data/trophies'
 import styles from './RaceCard.module.css'
 
-export function RaceCard({ race, onViewDetails }) {
+type Props = {
+  race: UpcomingRace
+  onViewDetails?: (race: UpcomingRace) => void
+}
+
+export function RaceCard({ race, onViewDetails }: Props) {
   const trophy = TROPHIES[race.trophy]
 
   return (

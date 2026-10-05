@@ -1,3 +1,4 @@
+import type { KeyboardEvent, PointerEvent, ReactNode } from 'react'
 import { useId, useState } from 'react'
 import { useElementWidth } from '@/hooks/useElementWidth'
 import { niceTicks } from '@/utils/niceTicks'
@@ -9,7 +10,24 @@ const X_TICKS = 4
 // Línea de una serie con línea base en 0: arriba se pinta con `positiveColor`, abajo con `negativeColor`.
 // data: [{ date: Date, value: number }]
 // renderTooltip(point) devuelve el contenido del tooltip del punto activo.
-export function LineChart({
+export type LinePoint = {
+  date: Date
+  value: number
+}
+
+type Props<T extends LinePoint> = {
+  data: T[]
+  height?: number
+  formatValue?: (value: number) => string
+  formatAxisValue?: (value: number) => string
+  formatDate: (date: Date) => string
+  renderTooltip?: (point: T) => ReactNode
+  positiveColor?: string
+  negativeColor?: string
+  ariaLabel: string
+}
+
+export function LineChart<T extends LinePoint>({
   data,
   height = 240,
   formatValue = String,
@@ -19,9 +37,9 @@ export function LineChart({
   positiveColor,
   negativeColor,
   ariaLabel,
-}) {
+}: Props<T>) {
   const [containerRef, width] = useElementWidth()
-  const [activeIndex, setActiveIndex] = useState(null)
+  const [activeIndex, setActiveIndex] = useState<number | null>(null)
   const gradientId = useId()
 
   const innerWidth = Math.max(width - MARGIN.left - MARGIN.right, 0)
@@ -29,35 +47,43 @@ export function LineChart({
 
   const values = data.map((point) => point.value)
   const yTicks = niceTicks(Math.min(0, ...values), Math.max(0, ...values), 4)
-  const [yMin, yMax] = [yTicks[0], yTicks.at(-1)]
-  const [tMin, tMax] = [data[0].date.getTime(), data.at(-1).date.getTime()]
+  const [yMin = 0, yMax = 0] = [yTicks[0], yTicks.at(-1)]
 
-  const x = (date) => (tMax === tMin ? innerWidth / 2 : ((date.getTime() - tMin) / (tMax - tMin)) * innerWidth)
-  const y = (value) => innerHeight - ((value - yMin) / (yMax - yMin || 1)) * innerHeight
+  // El llamador ya evita pintar una serie vacia, pero esa garantia vivia fuera:
+  // escrita aqui, el componente se sostiene solo.
+  const firstPoint = data[0]
+  const lastPoint = data.at(-1)
+  if (!firstPoint || !lastPoint) return null
+
+  const [tMin, tMax] = [firstPoint.date.getTime(), lastPoint.date.getTime()]
+
+  const x = (date: Date) => (tMax === tMin ? innerWidth / 2 : ((date.getTime() - tMin) / (tMax - tMin)) * innerWidth)
+  const y = (value: number) => innerHeight - ((value - yMin) / (yMax - yMin || 1)) * innerHeight
 
   const zeroY = y(0)
   const zeroOffset = innerHeight === 0 ? 0 : zeroY / innerHeight
   const linePath = data.map((point, i) => `${i === 0 ? 'M' : 'L'}${x(point.date)},${y(point.value)}`).join(' ')
-  const areaPath = `${linePath} L${x(data.at(-1).date)},${zeroY} L${x(data[0].date)},${zeroY} Z`
+  const areaPath = `${linePath} L${x(lastPoint.date)},${zeroY} L${x(firstPoint.date)},${zeroY} Z`
 
   const xTicks = Array.from({ length: X_TICKS }, (_, i) => new Date(tMin + ((tMax - tMin) * i) / (X_TICKS - 1)))
-  const last = data.at(-1)
+  const last = lastPoint
   const active = activeIndex == null ? null : data[activeIndex]
 
-  function nearestIndex(pointerX) {
+  function nearestIndex(pointerX: number) {
     let best = 0
     data.forEach((point, i) => {
-      if (Math.abs(x(point.date) - pointerX) < Math.abs(x(data[best].date) - pointerX)) best = i
+      const mejor = data[best]
+      if (mejor && Math.abs(x(point.date) - pointerX) < Math.abs(x(mejor.date) - pointerX)) best = i
     })
     return best
   }
 
-  function handlePointerMove(event) {
+  function handlePointerMove(event: PointerEvent<SVGSVGElement>) {
     const bounds = event.currentTarget.getBoundingClientRect()
     setActiveIndex(nearestIndex(event.clientX - bounds.left - MARGIN.left))
   }
 
-  function handleKeyDown(event) {
+  function handleKeyDown(event: KeyboardEvent<SVGSVGElement>) {
     const current = activeIndex ?? data.length - 1
     if (event.key === 'ArrowRight') setActiveIndex(Math.min(current + 1, data.length - 1))
     else if (event.key === 'ArrowLeft') setActiveIndex(Math.max(current - 1, 0))

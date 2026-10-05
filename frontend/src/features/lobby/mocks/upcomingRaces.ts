@@ -1,5 +1,6 @@
 // Mock de GET /races/upcoming: las 6 carreras de mañana.
-export const UPCOMING_RACES = [
+import type { UpcomingRace } from '../types'
+export const UPCOMING_RACES: UpcomingRace[] = [
   {
     id: 1,
     name: 'Carrera de la Hoja',
