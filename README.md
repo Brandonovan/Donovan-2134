@@ -12,7 +12,12 @@ El repositorio contiene las dos partes del proyecto:
 
 ## Despliegue
 
-- **Frontend:** _(pendiente de enlace)_
+- **Frontend:** https://donovan-2134.vercel.app
+- **Pasarela de pagos:** _(pendiente de enlace)_
+
+El frontend desplegado funciona por sí solo: sin `VITE_GATEWAY_URL` apuntando a
+la pasarela, el comercio simulado también simula el cobro. Conectarlos es
+opcional y se explica en `frontend/README.md`.
 
 ## Cómo ejecutarlo
 
