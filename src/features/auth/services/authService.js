@@ -3,7 +3,6 @@ import { dummyVerify, hashPassword, verifyPassword } from '../utils/passwordHash
 
 const FAKE_DB_KEY = 'snailwin_fake_users_v2'
 const LEGACY_KEYS = ['snailwin_fake_users', 'snailwin_user']
-const INITIAL_BALANCE = 1000
 
 // --- Simulación del backend ---------------------------------------------
 // Mientras no exista la API, los usuarios se guardan en localStorage. La
@@ -49,7 +48,6 @@ async function fakeRegister({ fullName, email, password }) {
     name: fullName.trim(),
     email: normalizedEmail,
     passwordHash: await hashPassword(password),
-    balance: INITIAL_BALANCE,
   }
   localStorage.setItem(FAKE_DB_KEY, JSON.stringify([...users, newUser]))
   return newUser

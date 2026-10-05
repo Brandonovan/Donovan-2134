@@ -2,6 +2,7 @@ import { apiClient } from '@/services/apiClient'
 import { getCurrentUserId } from '@/services/session'
 import { mockRequest, USE_MOCKS } from '@/services/mockRequest'
 import { TRANSACTIONS, WALLET } from '../mocks/wallet'
+import { validateAmount } from '../utils/amount'
 import { cardLabel } from '../utils/card'
 import { accountLabel } from '../utils/clabe'
 
@@ -25,7 +26,12 @@ function readFakeWallet() {
 }
 
 function saveFakeWallet(wallet) {
-  localStorage.setItem(FAKE_WALLETS_KEY, JSON.stringify({ ...readFakeWallets(), [getCurrentUserId()]: wallet }))
+  try {
+    localStorage.setItem(FAKE_WALLETS_KEY, JSON.stringify({ ...readFakeWallets(), [getCurrentUserId()]: wallet }))
+  } catch {
+    // Sin almacenamiento disponible (modo privado, cuota llena): la operación
+    // se ve en pantalla, pero no sobrevive a recargar la página.
+  }
 }
 
 // CVV para probar un cobro rechazado por el banco.
@@ -34,9 +40,12 @@ const FAKE_DECLINED_CVV = '000'
 function fakeMovement(type, amount, { card, cvv, account }) {
   return () => {
     const { transactions, ...wallet } = readFakeWallet()
-    if (type === 'withdrawal' && amount > wallet.balance) {
-      throw new Error('No tienes saldo suficiente para este retiro')
-    }
+
+    // Se revalida el monto aunque el formulario ya lo hiciera: las reglas del
+    // cliente son UX y cualquiera puede saltárselas llamando al servicio.
+    // El backend real tendrá que repetir esta misma comprobación.
+    const amountError = validateAmount(amount, type, wallet.balance)
+    if (amountError) throw new Error(amountError)
     // El CVV solo se usa para autorizar este cobro; no se guarda en ningún lado.
     if (type === 'deposit' && cvv === FAKE_DECLINED_CVV) {
       throw new Error('Tu banco rechazó el cobro. Revisa los datos o usa otra tarjeta.')
