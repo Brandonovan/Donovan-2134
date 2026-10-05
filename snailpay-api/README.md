@@ -2,8 +2,8 @@
 
 Servicio de SnailPay: autoriza recargas y retiros.
 
-> Estado: esqueleto. Arranca y responde, pero todavía no expone endpoints de
-> negocio.
+> Estado: en construcción. Expone la creación de pagos; los escenarios de
+> rechazo todavía no están implementados.
 
 ## Requisitos
 
@@ -27,12 +27,70 @@ curl http://localhost:3000/health
 # {"status":"ok"}
 ```
 
+## Endpoints
+
+### `POST /payments`
+
+Cobra a una tarjeta. Requiere `Authorization: Bearer <token>`.
+
+```json
+{
+  "transaction_amount": 500,
+  "currency_id": "MXN",
+  "reference": "a3f9c1e2-7b40-4d1e-9c22-5f8e1a0d3b67",
+  "payer_email": "donovan@ejemplo.com",
+  "card": {
+    "number": "4242424242424242",
+    "expiration_month": 12,
+    "expiration_year": 2028,
+    "security_code": "123",
+    "cardholder_name": "Donovan Rodriguez"
+  }
+}
+```
+
+Respuesta `201`:
+
+```json
+{
+  "id": "pay_e95033de5e",
+  "status": "approved",
+  "status_detail": "accredited",
+  "transaction_amount": 500,
+  "currency_id": "MXN",
+  "date_created": "2026-10-05T02:45:32.820Z",
+  "authorization_code": "FJFWG3",
+  "reference": "a3f9c1e2-7b40-4d1e-9c22-5f8e1a0d3b67",
+  "payer_id": "cc9577dc9fdd9691",
+  "payer_email": "donovan@ejemplo.com"
+}
+```
+
+Notas del contrato:
+
+- `reference` es el identificador de la operación **en el comercio**, y se
+  devuelve tal cual para que el comercio pueda conciliar. Es obligatorio.
+- `currency_id` solo admite `MXN`: una pasarela que dijera aceptar monedas que
+  no puede liquidar estaría mintiendo. Va también en la respuesta porque un
+  recibo tiene que sostenerse solo.
+- `payer_id` se deriva del correo, no se almacena: el mismo pagador obtiene
+  siempre el mismo id sin que el servicio recuerde nada. No es anonimización.
+- `security_code` son 3 dígitos, o 4 si la marca es American Express.
+- Por ahora siempre aprueba. Los rechazos vendrán después.
+
+**Limitación conocida: no hay idempotencia.** Sin almacenamiento, el servicio no
+recuerda qué referencias ya vio, así que dos peticiones con la misma `reference`
+producen dos cobros. Un reintento por timeout cobraría dos veces.
+
 ## Qué es y qué no es
 
 Simula una **pasarela de pagos**, no el libro de cuentas. El saldo y el
 historial de movimientos los lleva el frontend en `localStorage`; este servicio
 recibe una orden, decide si la autoriza y devuelve un comprobante. Por eso no
 comprueba si hay fondos suficientes: ese dato no lo tiene ni le corresponde.
+
+Los datos de la tarjeta no se almacenan, no se registran en ningún log y no
+salen en la respuesta ni enmascarados: mueren en el servicio que los valida.
 
 Tampoco emite los tokens de sesión. `middlewares/authenticate.ts` exige una
 cabecera `Authorization: Bearer` con el formato que genera el front, pero **no
