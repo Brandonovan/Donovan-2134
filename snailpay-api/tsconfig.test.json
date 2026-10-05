@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    /* El principal fija rootDir en src para emitir dist; aquí no se emite nada,
+       así que se abre para que entren tests y la config de vitest. */
+    "rootDir": "."
+  },
+  /* El tsconfig principal solo ve src porque `build` emite a dist y las pruebas
+     no deben acabar ahí. Este las añade para comprobarlas de tipos. */
+  "include": ["src/**/*.ts", "tests/**/*.ts", "vitest.config.ts"]
+}

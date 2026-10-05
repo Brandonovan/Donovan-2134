@@ -19,7 +19,8 @@ Servicio de SnailPay: autoriza recargas y retiros.
 npm install
 cp .env.example .env     # opcional: los valores por defecto sirven en local
 npm run dev              # http://localhost:3000, recarga al guardar
-npm run typecheck        # comprueba tipos sin compilar
+npm test                 # pruebas (vitest + supertest)
+npm run typecheck        # comprueba tipos, incluidas las pruebas
 npm run build            # compila a dist/
 npm start                # ejecuta lo compilado
 ```
@@ -320,6 +321,32 @@ la señal que busca es `approved` contra `rejected`, y esa no se puede quitar.
 En producción, además, el navegador no hablaría directo con la pasarela: habría
 un backend de comercio en medio decidiendo qué reenviar. Esa capa, que aquí no
 existe, es donde normalmente se filtra el detalle.
+
+## Pruebas
+
+```bash
+npm test
+```
+
+85 pruebas sobre los tres endpoints, con la app montada en memoria por supertest
+— sin levantar un puerto, porque `app.ts` se separa de `server.ts` justo para
+esto.
+
+Cubren el cobro y el retiro aprobados, los diez escenarios de rechazo, los
+valores inválidos de cada campo, la autenticación y el interruptor de estado.
+Tres grupos merecen mención:
+
+- **Que no se filtre nada**: ni el número completo, ni el código de seguridad,
+  ni la CLABE, ni en la respuesta ni en los errores de validación. Y que la
+  tarjeta devuelta tenga exactamente cuatro campos y ninguno más.
+- **Que el enmascarado funcione**: `HIGH` y la cuenta bloqueada responden con un
+  motivo genérico y el real no aparece por ningún lado.
+- **Que el corte por servicio caído sea lo primero**: con la pasarela apagada,
+  una petición sin token y otra con el cuerpo vacío dan las dos 503. Si dieran
+  401 o 400 significaría que algo se ejecuta antes de lo que debería.
+
+Las pruebas corren con `AUTHORIZATION_DELAY_MS=0`: lo que se comprueba no es el
+reloj, y 1,2 segundos por cobro convertirían segundos en minutos.
 
 ## Qué es y qué no es
 
