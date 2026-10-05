@@ -30,5 +30,8 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src"],
+  /* Las pruebas se comprueban aparte: necesitan los tipos de Node y el código
+     de la app no debe tenerlos a mano. Ver tsconfig.test.json. */
+  "exclude": ["src/**/*.test.ts"]
 }

@@ -13,6 +13,7 @@ npm install     # instalar dependencias
 npm run dev     # servidor de desarrollo (http://localhost:5173)
 npm run build   # typecheck + build de producción en dist/
 npm run lint    # linter (oxlint)
+npm test        # pruebas (vitest)
 npm run typecheck  # solo comprobación de tipos
 ```
 
@@ -56,6 +57,38 @@ una sesión que no corresponda a ningún registro.
 fabricar una sesión sin pasar por el formulario, y los guards de ruta solo
 deciden qué se renderiza. Una frontera real exige un servidor que rechace las
 peticiones, que es justo lo que sustituirá a esta simulación.
+
+## Pruebas
+
+```bash
+npm test
+```
+
+59 pruebas de lógica, sin DOM: lo que se comprueba son reglas, no renderizado.
+`vitest.setup.ts` pone un `localStorage` en memoria y lo vacía entre pruebas.
+
+- **Contraseña** — el formato del hash, que el salt sea distinto por usuario,
+  que verifique contra hashes distintos de la misma contraseña, que no reviente
+  con un hash corrupto, y que `dummyVerify` cueste un tiempo comparable al real
+  (es lo que evita delatar qué correos existen).
+- **Reglas del formulario** — las cinco de la contraseña, el nombre, el correo,
+  y que `sanitize` **no toque** la contraseña: un `trim` silencioso dejaría al
+  usuario fuera de su cuenta.
+- **Montos** — mínimo, tope y saldo, para recarga y retiro, con los extremos
+  exactos.
+- **Libro de cuentas** — que los depósitos sumen, los retiros resten, el
+  historial ordene por recencia, cada usuario tenga su billetera, y que el saldo
+  no acumule error de coma flotante.
+
+Hay además un **test de contrato** que lee `AMOUNT_LIMITS` de snailpay-api y lo
+compara con el del cliente. Las constantes viven en dos repositorios y nada
+avisa si divergen — y ya divergieron una vez: el cliente topaba las recargas
+pero no los retiros, así que un retiro grande pasaba la validación y lo
+rechazaba la pasarela después de confirmar.
+
+Las pruebas se comprueban de tipos con su propia configuración
+(`tsconfig.test.json`), para que el código de la aplicación siga sin acceso a
+los globales de Node.
 
 ## Los dos backends
 

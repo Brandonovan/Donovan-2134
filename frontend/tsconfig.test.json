@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    /* Las pruebas sí corren en Node: leen archivos y usan Buffer. */
+    "types": ["vite/client", "node"]
+  },
+  "include": ["src", "vitest.config.ts", "vitest.setup.ts"],
+  "exclude": []
+}
