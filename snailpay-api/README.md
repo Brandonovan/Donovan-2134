@@ -100,7 +100,14 @@ Respuesta `201`:
   "authorization_code": "FJFWG3",
   "reference": "a3f9c1e2-7b40-4d1e-9c22-5f8e1a0d3b67",
   "payer_id": "cc9577dc9fdd9691",
-  "payer_email": "donovan@ejemplo.com"
+  "payer_email": "donovan@ejemplo.com",
+  "payment_method_id": "visa",
+  "card": {
+    "first_six_digits": "424242",
+    "last_four_digits": "4242",
+    "expiration_month": 12,
+    "expiration_year": 2028
+  }
 }
 ```
 
@@ -194,6 +201,11 @@ Notas del contrato:
 - `payer_id` se deriva del correo, no se almacena: el mismo pagador obtiene
   siempre el mismo id sin que el servicio recuerde nada. No es anonimización.
 - `security_code` son 3 dígitos, o 4 si la marca es American Express.
+- La respuesta devuelve la tarjeta **enmascarada**: BIN, últimos cuatro y
+  vencimiento, igual que Mercado Pago y Stripe. PCI permite mostrar los primeros
+  seis y los últimos cuatro, y con el tramo de en medio oculto no se puede
+  reconstruir el número. El **código de seguridad no sale jamás**, bajo ninguna
+  forma. Un pago rechazado también lo lleva: hace falta para soporte.
 - Por ahora siempre aprueba. Los rechazos vendrán después.
 
 ### `POST /payouts`
@@ -226,7 +238,12 @@ Respuesta `201`:
   "tracking_key": "SNP202610056UW5RZ",
   "reference": "a3f9c1e2-7b40-4d1e-9c22-5f8e1a0d3b67",
   "payee_id": "cc9577dc9fdd9691",
-  "payee_email": "donovan@ejemplo.com"
+  "payee_email": "donovan@ejemplo.com",
+  "account": {
+    "bank_code": "012",
+    "bank_name": "BBVA México",
+    "last_four_digits": "1001"
+  }
 }
 ```
 
@@ -238,6 +255,9 @@ Diferencias con un cobro, y no son cosméticas:
   rechazo va `null`: si no se envió nada, no hay nada que rastrear.
 - **`payee` en vez de `payer`**, porque aquí la contraparte recibe.
 - El `id` lleva prefijo `pyo_` para no confundirlo con un cobro.
+
+De la cuenta sale solo banco y últimos cuatro. El número de cuenta de once
+dígitos que va en medio, y el nombre del titular, no salen nunca.
 
 La CLABE se valida con su **dígito verificador** (pesos 3-7-1, módulo 10), el
 mismo algoritmo que usa el front. Se aceptan espacios al escribirla.
@@ -301,8 +321,11 @@ historial de movimientos los lleva el frontend en `localStorage`; este servicio
 recibe una orden, decide si la autoriza y devuelve un comprobante. Por eso no
 comprueba si hay fondos suficientes: ese dato no lo tiene ni le corresponde.
 
-Los datos de la tarjeta no se almacenan, no se registran en ningún log y no
-salen en la respuesta ni enmascarados: mueren en el servicio que los valida.
+Los datos sensibles no se almacenan ni se registran en ningún log. De la
+respuesta sale únicamente la versión enmascarada —BIN y últimos cuatro de la
+tarjeta, banco y últimos cuatro de la cuenta—, que es lo que devuelven las
+pasarelas reales y lo que PCI permite mostrar. El número completo, la CLABE
+completa y el código de seguridad no salen por ninguna vía.
 
 Tampoco emite los tokens de sesión. `middlewares/authenticate.ts` exige una
 cabecera `Authorization: Bearer` con el formato que genera el front, pero **no

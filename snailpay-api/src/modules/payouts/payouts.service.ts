@@ -1,4 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto'
+import { bankCode, bankName, lastFour } from '../../shared/clabe.js'
 import { toAmount, toCents } from '../../shared/money.js'
 import { resolveOutcome } from './payouts.outcomes.js'
 import type { Payout, PayoutRequest } from './payouts.schema.js'
@@ -9,8 +10,8 @@ import type { Payout, PayoutRequest } from './payouts.schema.js'
 // envía y se rastrea. Por eso no existe `authorization_code` y sí una clave de
 // rastreo, que es lo que cita el cliente cuando reclama que no le llegó.
 //
-// Los datos de la cuenta mueren aquí. Fíjate en que `request.account` no se usa
-// para construir la respuesta: solo decide el resultado y se descarta.
+// De la cuenta solo sale su forma enmascarada: banco y últimos cuatro. El
+// número de cuenta que va en medio no sale nunca, ni se guarda, ni se registra.
 
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
 
@@ -42,10 +43,16 @@ export function createPayout(request: PayoutRequest): Payout {
     currency_id: request.currency_id,
     date_created: now.toISOString(),
   }
+  const code = bankCode(request.account.clabe)
   const payee = {
     reference: request.reference,
     payee_id: payeeId(request.payee_email),
     payee_email: request.payee_email,
+    account: {
+      bank_code: code,
+      bank_name: bankName(code),
+      last_four_digits: lastFour(request.account.clabe),
+    },
   }
 
   if (outcome.status === 'rejected') {

@@ -53,6 +53,14 @@ export const payoutSchema = z.object({
 
 export type PayoutRequest = z.infer<typeof payoutSchema>
 
+// Lo que sale de la cuenta: banco y últimos cuatro. El número de cuenta de 11
+// dígitos que va en medio no sale nunca.
+export type MaskedAccount = {
+  bank_code: string
+  bank_name: string
+  last_four_digits: string
+}
+
 type PayoutBase = {
   id: string
   transaction_amount: number
@@ -61,6 +69,7 @@ type PayoutBase = {
   reference: string
   payee_id: string
   payee_email: string
+  account: MaskedAccount
 }
 
 // Unión discriminada, igual que en los cobros: si no se envió nada, no hay nada

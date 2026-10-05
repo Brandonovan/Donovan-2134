@@ -90,6 +90,16 @@ export const paymentSchema = z.object({
 
 export type PaymentRequest = z.infer<typeof paymentSchema>
 
+// La representación enmascarada que SÍ sale, con la forma que devuelve Mercado
+// Pago. Nunca el número completo, y el código de seguridad jamás bajo ninguna
+// forma: ni el valor, ni un hash, ni nada derivado de él.
+export type MaskedCard = {
+  first_six_digits: string
+  last_four_digits: string
+  expiration_month: number
+  expiration_year: number
+}
+
 type PaymentBase = {
   id: string
   transaction_amount: number
@@ -98,6 +108,10 @@ type PaymentBase = {
   reference: string
   payer_id: string
   payer_email: string
+  // Como en Mercado Pago, la marca va al nivel del pago y no dentro de la
+  // tarjeta: describe con qué medio se cobró, no la tarjeta en sí.
+  payment_method_id: string
+  card: MaskedCard
 }
 
 // Unión discriminada por `status` a propósito: el código de autorización lo

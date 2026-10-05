@@ -55,3 +55,16 @@ export function isExpired(month: number, year: number, now = new Date()): boolea
   // el mes 12 equivale a enero del año siguiente y Date lo resuelve solo.
   return new Date(year, month, 1) <= now
 }
+
+// Lo ÚNICO del número que puede salir de este servicio.
+//
+// Los primeros seis dígitos son el BIN: identifican al emisor y PCI permite
+// mostrarlos junto a los últimos cuatro. Con el resto por medio oculto, no se
+// puede reconstruir la tarjeta ni cobrar con ella.
+export function firstSix(digits: string): string {
+  return digits.slice(0, 6)
+}
+
+export function lastFour(digits: string): string {
+  return digits.slice(-4)
+}

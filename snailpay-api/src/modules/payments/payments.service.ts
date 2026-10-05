@@ -1,4 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto'
+import { detectBrand, firstSix, lastFour } from '../../shared/card.js'
 import { toAmount, toCents } from '../../shared/money.js'
 import { resolveOutcome } from './payments.outcomes.js'
 import type { Payment, PaymentRequest } from './payments.schema.js'
@@ -9,10 +10,13 @@ import type { Payment, PaymentRequest } from './payments.schema.js'
 // tarjeta completo. Un backend de comercio recibiría un token y nunca vería el
 // PAN (ver README).
 //
-// Los datos de la tarjeta mueren aquí. No se guardan, no se registran y no
-// salen en la respuesta — ni siquiera enmascarados. Fíjate en que
-// `request.card` no se usa para construir el pago: lo único que llega a la
-// respuesta es lo que el comercio ya sabía.
+// De la tarjeta solo sale su forma enmascarada: BIN, últimos cuatro y
+// vencimiento, igual que devuelven Mercado Pago y Stripe. PCI permite mostrar
+// los primeros seis y los últimos cuatro, y con el tramo de en medio oculto no
+// se puede reconstruir el número ni cobrar con él.
+//
+// El código de seguridad no sale jamás, bajo ninguna forma. Y nada de esto se
+// guarda ni se registra en un log.
 //
 // LIMITACIÓN CONOCIDA: sin almacenamiento no hay idempotencia. Dos peticiones
 // con la misma `reference` producen dos pagos distintos, así que un reintento
@@ -59,6 +63,13 @@ export function createPayment(request: PaymentRequest): Payment {
     reference: request.reference,
     payer_id: payerId(request.payer_email),
     payer_email: request.payer_email,
+    payment_method_id: detectBrand(request.card.number) ?? 'unknown',
+    card: {
+      first_six_digits: firstSix(request.card.number),
+      last_four_digits: lastFour(request.card.number),
+      expiration_month: request.card.expiration_month,
+      expiration_year: request.card.expiration_year,
+    },
   }
 
   if (outcome.status === 'rejected') {
