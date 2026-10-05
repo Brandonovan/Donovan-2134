@@ -6,8 +6,8 @@ El repositorio contiene las dos partes del proyecto:
 
 ```
 .
-├── frontend/   React + Vite (ver frontend/README.md)
-└── backend/    pendiente
+├── frontend/      React + Vite       (ver frontend/README.md)
+└── snailpay-api/  Express + TypeScript (ver snailpay-api/README.md)
 ```
 
 ## Despliegue
@@ -16,13 +16,22 @@ El repositorio contiene las dos partes del proyecto:
 
 ## Cómo ejecutarlo
 
-Requiere Node.js `^20.19` o `>=22.12` (lo que exige Vite 8).
+Ambas partes requieren Node.js `^20.19` o `>=22.12`.
 
 ```bash
 cd frontend
 npm install
-npm run dev     # http://localhost:5173
+npm run dev          # http://localhost:5173
 ```
+
+```bash
+cd snailpay-api
+npm install
+npm run dev          # http://localhost:3000
+```
+
+El frontend funciona por sí solo: sin `VITE_USE_MOCKS=false` no llama al
+servicio y toda la simulación ocurre en el navegador.
 
 ## Sobre la simulación
 
@@ -38,6 +47,11 @@ al probar la versión desplegada:
 Los servicios están escritos con la forma que tendrán contra la API real
 (`if (!USE_MOCKS) return apiClient(...)`), de modo que conectar el backend sea
 cambiar dos variables de entorno y no reescribir las pantallas.
+
+`snailpay-api/` está en esqueleto: arranca y responde, pero todavía no expone
+endpoints de negocio. Cuando los tenga, simulará una **pasarela de pagos** —
+autoriza o rechaza una recarga y devuelve su comprobante— y no el libro de
+cuentas, que seguirá siendo del navegador.
 
 ## Tratamiento de la contraseña
 
