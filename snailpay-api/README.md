@@ -196,6 +196,80 @@ Notas del contrato:
 - `security_code` son 3 dígitos, o 4 si la marca es American Express.
 - Por ahora siempre aprueba. Los rechazos vendrán después.
 
+### `POST /payouts`
+
+Envía un retiro a una cuenta CLABE. Requiere `Authorization: Bearer <token>`.
+
+```json
+{
+  "transaction_amount": 500,
+  "currency_id": "MXN",
+  "reference": "a3f9c1e2-7b40-4d1e-9c22-5f8e1a0d3b67",
+  "payee_email": "donovan@ejemplo.com",
+  "account": {
+    "clabe": "012180000000001001",
+    "account_holder": "DONOVAN RODRIGUEZ"
+  }
+}
+```
+
+Respuesta `201`:
+
+```json
+{
+  "id": "pyo_1ea76b321d",
+  "status": "approved",
+  "status_detail": "accredited",
+  "transaction_amount": 500,
+  "currency_id": "MXN",
+  "date_created": "2026-10-05T03:57:44.902Z",
+  "tracking_key": "SNP202610056UW5RZ",
+  "reference": "a3f9c1e2-7b40-4d1e-9c22-5f8e1a0d3b67",
+  "payee_id": "cc9577dc9fdd9691",
+  "payee_email": "donovan@ejemplo.com"
+}
+```
+
+Diferencias con un cobro, y no son cosméticas:
+
+- **No hay `authorization_code`.** Un retiro por SPEI no lo autoriza un banco
+  emisor: se envía y se rastrea. Su equivalente es la **clave de rastreo**, que
+  es lo que cita el cliente cuando reclama que no le llegó el dinero. En un
+  rechazo va `null`: si no se envió nada, no hay nada que rastrear.
+- **`payee` en vez de `payer`**, porque aquí la contraparte recibe.
+- El `id` lleva prefijo `pyo_` para no confundirlo con un cobro.
+
+La CLABE se valida con su **dígito verificador** (pesos 3-7-1, módulo 10), el
+mismo algoritmo que usa el front. Se aceptan espacios al escribirla.
+
+#### Escenarios
+
+El disparador es la **CLABE**, no el titular: en el formulario del front ese
+campo es de solo lectura, porque la cuenta debe estar a nombre del usuario.
+Todas estas pasan el dígito verificador, así que el front las acepta.
+
+| CLABE | Banco | `status` | `status_detail` |
+| ----- | ----- | -------- | --------------- |
+| `012180000000001001` | BBVA | `approved` | `accredited` |
+| `072180000000002008` | Banorte | `rejected` | `payout_rejected_account_not_found` |
+| `014180000000003007` | Santander | `rejected` | `payout_rejected_other_reason` ⚠️ |
+| `002180000000004005` | Banamex | `rejected` | `payout_rejected_bank_unavailable` |
+| `127180000000005002` | Azteca | `rejected` | `payout_rejected_name_mismatch` |
+| `646180000000006003` | STP | `rejected` | `payout_rejected_limit_exceeded` |
+| *cualquier otra válida* | — | `approved` | `accredited` |
+
+**Estos códigos son nuestros.** A diferencia del catálogo `cc_rejected_*` de los
+cobros, que es el real de Mercado Pago, no existe un vocabulario público
+equivalente para dispersiones, así que seguimos el mismo patrón.
+
+La CLABE de Santander es el caso enmascarado, igual que `HIGH` en los cobros: la
+respuesta dice `payout_rejected_other_reason` y el log registra
+`payout_rejected_account_blocked`. Que una cuenta esté bloqueada dice algo sobre
+la situación de su titular, y eso no se anuncia.
+
+`MAX_ACCOUNTS` es 3 en el front, así que no caben las seis a la vez: registra la
+que quieras probar y bórrala después.
+
 ### Limitaciones conocidas
 
 Las dos salen de lo mismo: el servicio no guarda nada.
