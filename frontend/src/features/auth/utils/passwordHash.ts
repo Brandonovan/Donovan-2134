@@ -18,19 +18,19 @@ const KEY_BITS = 256
 
 const encoder = new TextEncoder()
 
-function toBase64(bytes) {
+function toBase64(bytes: Uint8Array<ArrayBuffer>): string {
   return btoa(String.fromCharCode(...bytes))
 }
 
-function fromBase64(value) {
+function fromBase64(value: string): Uint8Array<ArrayBuffer> {
   return Uint8Array.from(atob(value), (char) => char.charCodeAt(0))
 }
 
-function randomSalt() {
+function randomSalt(): Uint8Array<ArrayBuffer> {
   return crypto.getRandomValues(new Uint8Array(SALT_BYTES))
 }
 
-async function derive(password, salt, iterations) {
+async function derive(password: string, salt: Uint8Array<ArrayBuffer>, iterations: number): Promise<Uint8Array<ArrayBuffer>> {
   const key = await crypto.subtle.importKey('raw', encoder.encode(password), 'PBKDF2', false, [
     'deriveBits',
   ])
@@ -44,10 +44,10 @@ async function derive(password, salt, iterations) {
 
 // Comparación en tiempo constante: salir en la primera diferencia revelaría,
 // por el tiempo de respuesta, cuántos bytes acertó quien lo intenta.
-function equals(a, b) {
+function equals(a: Uint8Array<ArrayBuffer>, b: Uint8Array<ArrayBuffer>): boolean {
   if (a.length !== b.length) return false
   let diff = 0
-  for (let i = 0; i < a.length; i += 1) diff |= a[i] ^ b[i]
+  for (let i = 0; i < a.length; i += 1) diff |= (a[i] ?? 0) ^ (b[i] ?? 0)
   return diff === 0
 }
 
@@ -55,17 +55,17 @@ function equals(a, b) {
 //   pbkdf2-sha256$600000$<salt>$<hash>
 // Guardar los parámetros junto al hash permite subir las iteraciones más
 // adelante sin invalidar las contraseñas ya registradas.
-export async function hashPassword(password) {
+export async function hashPassword(password: string): Promise<string> {
   const salt = randomSalt()
   const hash = await derive(password, salt, ITERATIONS)
   return `${ALGORITHM}$${ITERATIONS}$${toBase64(salt)}$${toBase64(hash)}`
 }
 
-export async function verifyPassword(password, stored) {
+export async function verifyPassword(password: string, stored: unknown): Promise<boolean> {
   const parts = String(stored ?? '').split('$')
   if (parts.length !== 4) return false
 
-  const [algorithm, rawIterations, salt, hash] = parts
+  const [algorithm, rawIterations, salt, hash] = parts as [string, string, string, string]
   const iterations = Number(rawIterations)
   if (algorithm !== ALGORITHM || !Number.isInteger(iterations) || iterations <= 0) return false
 
@@ -74,7 +74,7 @@ export async function verifyPassword(password, stored) {
 
 // Deriva un hash que se descarta. Sirve para que un intento contra un correo
 // inexistente cueste lo mismo que uno contra un correo real (ver authService).
-export async function dummyVerify(password) {
+export async function dummyVerify(password: string): Promise<false> {
   await derive(password, randomSalt(), ITERATIONS)
   return false
 }

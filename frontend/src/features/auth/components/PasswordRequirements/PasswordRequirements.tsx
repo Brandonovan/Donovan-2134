@@ -1,7 +1,12 @@
 import { PASSWORD_RULES } from '../../utils/validation'
 import styles from './PasswordRequirements.module.css'
 
-export function PasswordRequirements({ password, id }) {
+type Props = {
+  password: string
+  id: string
+}
+
+export function PasswordRequirements({ password, id }: Props) {
   return (
     <ul id={id} className={styles.list} aria-label="Requisitos de la contraseña">
       {PASSWORD_RULES.map((rule) => {
