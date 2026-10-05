@@ -1,6 +1,19 @@
+import type { ReactNode } from 'react'
 import styles from './ChartCard.module.css'
 
-function CardBody({ loading, error, onRetry, children }) {
+// La primera celda de cada fila hace de clave, así que es texto.
+export type ChartTable = {
+  columns: string[]
+  rows: [string, ...ReactNode[]][]
+}
+
+type StateProps = {
+  loading?: boolean
+  error?: Error | null
+  onRetry?: () => void
+}
+
+function CardBody({ loading, error, onRetry, children }: StateProps & { children: ReactNode }) {
   if (loading) {
     return (
       <div className={styles.skeleton} role="status">
@@ -20,13 +33,20 @@ function CardBody({ loading, error, onRetry, children }) {
       </div>
     )
   }
-  return children
+  return <>{children}</>
 }
 
 // Tarjeta para gráficas. `table` es la vista en tabla de los mismos datos:
 // ningún valor debe depender solo del color o del hover.
 // Mientras `loading` o `error` estén activos, muestra su estado en lugar de `children`.
-export function ChartCard({ title, description, table, loading, error, onRetry, children }) {
+type Props = StateProps & {
+  title: ReactNode
+  description?: ReactNode
+  table?: ChartTable
+  children?: ReactNode
+}
+
+export function ChartCard({ title, description, table, loading, error, onRetry, children }: Props) {
   const ready = !loading && !error
 
   return (

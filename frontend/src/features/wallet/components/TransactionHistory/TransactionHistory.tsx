@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { OperationMode, Transaction } from '../../types'
 import { ChartCard } from '@/components/charts/ChartCard/ChartCard'
 import { SegmentedControl } from '@/components/ui/SegmentedControl/SegmentedControl'
 import { formatSignedCurrency } from '@/utils/formatCurrency'
@@ -7,18 +8,20 @@ import styles from './TransactionHistory.module.css'
 
 const PAGE_SIZE = 8
 
-const FILTERS = [
+type Filter = 'all' | OperationMode
+
+const FILTERS: { value: Filter; label: string }[] = [
   { value: 'all', label: 'Todos' },
   { value: 'deposit', label: 'Recargas' },
   { value: 'withdrawal', label: 'Retiros' },
 ]
 
-const TYPES = {
+const TYPES: Record<OperationMode, { label: string; icon: string; sign: number }> = {
   deposit: { label: 'Recarga', icon: '↓', sign: 1 },
   withdrawal: { label: 'Retiro', icon: '↑', sign: -1 },
 }
 
-const EMPTY_MESSAGES = {
+const EMPTY_MESSAGES: Record<Filter, string> = {
   all: 'Aún no tienes movimientos.',
   deposit: 'Aún no has hecho recargas.',
   withdrawal: 'Aún no has hecho retiros.',
@@ -27,8 +30,10 @@ const EMPTY_MESSAGES = {
 const monthFormatter = new Intl.DateTimeFormat('es-MX', { month: 'long', year: 'numeric' })
 
 // Agrupa por mes conservando el orden (la lista ya viene del más reciente al más antiguo).
-function groupByMonth(transactions) {
-  const groups = []
+type Group = { label: string; items: Transaction[] }
+
+function groupByMonth(transactions: Transaction[]): Group[] {
+  const groups: Group[] = []
   transactions.forEach((transaction) => {
     const label = monthFormatter.format(new Date(transaction.createdAt))
     const last = groups.at(-1)
@@ -39,8 +44,22 @@ function groupByMonth(transactions) {
 }
 
 // highlightId = movimiento recién hecho; se resalta un momento al aparecer.
-export function TransactionHistory({ transactions = [], highlightId, loading, error, onRetry }) {
-  const [filter, setFilter] = useState('all')
+type Props = {
+  transactions: Transaction[] | undefined
+  highlightId?: string | null
+  loading?: boolean
+  error?: Error | null
+  onRetry?: () => void
+}
+
+export function TransactionHistory({
+  transactions = [],
+  highlightId,
+  loading,
+  error,
+  onRetry,
+}: Props) {
+  const [filter, setFilter] = useState<Filter>('all')
   const [showAll, setShowAll] = useState(false)
 
   const filtered = filter === 'all' ? transactions : transactions.filter(({ type }) => type === filter)

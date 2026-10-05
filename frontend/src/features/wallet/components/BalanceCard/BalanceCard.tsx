@@ -1,11 +1,12 @@
 import { useState } from 'react'
+import type { OperationMode, Transaction } from '../../types'
 import { ChartCard } from '@/components/charts/ChartCard/ChartCard'
 import { useAnimatedNumber } from '@/hooks/useAnimatedNumber'
 import { formatCurrency, formatSignedCurrency } from '@/utils/formatCurrency'
 import styles from './BalanceCard.module.css'
 
-function monthTotals(transactions, now) {
-  const totals = { deposit: 0, withdrawal: 0 }
+function monthTotals(transactions: Transaction[], now: Date) {
+  const totals: Record<OperationMode, number> = { deposit: 0, withdrawal: 0 }
   transactions.forEach(({ type, amount, createdAt }) => {
     const date = new Date(createdAt)
     if (date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth()) {
@@ -15,7 +16,15 @@ function monthTotals(transactions, now) {
   return totals
 }
 
-export function BalanceCard({ balance, transactions, loading, error, onRetry }) {
+type Props = {
+  balance: number | undefined
+  transactions: Transaction[] | undefined
+  loading?: boolean
+  error?: Error | null
+  onRetry?: () => void
+}
+
+export function BalanceCard({ balance, transactions, loading, error, onRetry }: Props) {
   const [now] = useState(() => new Date())
   const totals = transactions && monthTotals(transactions, now)
   const shownBalance = useAnimatedNumber(balance ?? 0)
@@ -23,7 +32,8 @@ export function BalanceCard({ balance, transactions, loading, error, onRetry }) 
   // Cuando el saldo cambia (tras una recarga o retiro) se muestra la diferencia
   // un momento. `key` reinicia la animación aunque el cambio se repita igual.
   const [previous, setPrevious] = useState(balance)
-  const [change, setChange] = useState(null)
+  type Change = { amount: number; key: number }
+  const [change, setChange] = useState<Change | null>(null)
   if (balance !== previous) {
     setPrevious(balance)
     if (previous != null && balance != null) {

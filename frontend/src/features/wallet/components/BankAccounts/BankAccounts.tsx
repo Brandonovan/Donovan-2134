@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import type { AccountFormValues } from '../../hooks/useBankAccounts'
+import type { BankAccount } from '../../types'
 import { ChartCard } from '@/components/charts/ChartCard/ChartCard'
 import { Button } from '@/components/ui/Button/Button'
 import { accountLabel, MAX_ACCOUNTS } from '../../utils/clabe'
@@ -6,18 +8,27 @@ import { AddBankAccountForm } from '../AddBankAccountForm/AddBankAccountForm'
 import { MethodRow } from '../MethodRow/MethodRow'
 import styles from '../PaymentCards/PaymentCards.module.css'
 
-export function BankAccounts({ accounts, selectedId, onSelect, holder, onAdd, onRemove }) {
+type Props = {
+  accounts: BankAccount[]
+  selectedId: string | undefined
+  onSelect: (id: string) => void
+  holder: string
+  onAdd: (values: AccountFormValues) => BankAccount
+  onRemove: (id: string) => void
+}
+
+export function BankAccounts({ accounts, selectedId, onSelect, holder, onAdd, onRemove }: Props) {
   const [adding, setAdding] = useState(false)
-  const [confirmingId, setConfirmingId] = useState(null)
+  const [confirmingId, setConfirmingId] = useState<string | null>(null)
   const [message, setMessage] = useState('')
 
-  function handleAdd(data) {
+  function handleAdd(data: AccountFormValues) {
     const account = onAdd(data)
     setAdding(false)
     setMessage(`Agregaste tu cuenta ${accountLabel(account)}.`)
   }
 
-  function handleRemove(account) {
+  function handleRemove(account: BankAccount) {
     onRemove(account.id)
     setConfirmingId(null)
     setMessage(`Eliminaste tu cuenta ${accountLabel(account)}.`)

@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import type { FormEvent } from 'react'
+import type { BankAccount, Card, MovementResult, OperationMode, Transaction } from '../../types'
 import { ChartCard } from '@/components/charts/ChartCard/ChartCard'
 import { Button } from '@/components/ui/Button/Button'
 import { Input } from '@/components/ui/Input/Input'
@@ -9,10 +11,12 @@ import { AMOUNT_LIMITS, parseAmount, sanitizeAmount, validateAmount } from '../.
 import { OperationDialog } from '../OperationDialog/OperationDialog'
 import styles from './WalletOperation.module.css'
 
+// `satisfies` fija los valores como literales sin perder el tipo del array:
+// así SegmentedControl deduce que onChange entrega un OperationMode.
 const MODES = [
   { value: 'deposit', label: 'Recargar' },
   { value: 'withdrawal', label: 'Retirar' },
-]
+] satisfies { value: OperationMode; label: string }[]
 
 const QUICK_AMOUNTS = [100, 200, 500, 1000]
 
@@ -36,10 +40,26 @@ const COPY = {
 // La operación es controlada: el modo y el método (tarjeta o cuenta) se eligen
 // en la tarjeta de métodos y llegan aquí ya resueltos. Este formulario solo arma
 // el monto: la confirmación, el CVV y el comprobante viven en OperationDialog.
-export function WalletOperation({ mode, onModeChange, card, account, payerEmail, onComplete }) {
+type Props = {
+  mode: OperationMode
+  onModeChange: (mode: OperationMode) => void
+  card: Card | undefined
+  account: BankAccount | undefined
+  payerEmail: string
+  onComplete?: (transaction: Transaction) => void
+}
+
+export function WalletOperation({
+  mode,
+  onModeChange,
+  card,
+  account,
+  payerEmail,
+  onComplete,
+}: Props) {
   const { wallet, loading, error, retry, deposit, withdraw, updateBalance } = useWallet()
   const [value, setValue] = useState('')
-  const [fieldError, setFieldError] = useState()
+  const [fieldError, setFieldError] = useState<string | undefined>()
   const [confirming, setConfirming] = useState(false)
 
   const copy = COPY[mode]
@@ -56,17 +76,17 @@ export function WalletOperation({ mode, onModeChange, card, account, payerEmail,
   const needsMethod = mode === 'deposit' ? !card : !account
   const canSubmit = amount >= AMOUNT_LIMITS.min && !overLimit && !needsMethod
 
-  function changeAmount(next) {
+  function changeAmount(next: string) {
     setValue(next)
     setFieldError(undefined)
   }
 
-  function changeMode(next) {
+  function changeMode(next: OperationMode) {
     onModeChange(next)
     changeAmount('')
   }
 
-  async function handleSubmit(event) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (needsMethod) return
 
@@ -76,16 +96,23 @@ export function WalletOperation({ mode, onModeChange, card, account, payerEmail,
   }
 
   // Lo llama el diálogo; si falla, el error se queda en el diálogo.
-  function confirm(cvv) {
-    return mode === 'deposit'
-      ? deposit(amount, { card, cvv, payerEmail })
-      : withdraw(amount, { account, payerEmail })
+  //
+  // Las comprobaciones son redundantes —`canSubmit` ya exige un método y el CVV
+  // se pide en el paso anterior— pero antes esa garantía vivía repartida entre
+  // dos componentes. Escribirla aquí la hace comprobable.
+  function confirm(cvv?: string) {
+    if (mode === 'deposit') {
+      if (!card || cvv === undefined) throw new Error('Selecciona una tarjeta y escribe el CVV')
+      return deposit(amount, { card, cvv, payerEmail })
+    }
+    if (!account) throw new Error('Selecciona una cuenta de destino')
+    return withdraw(amount, { account, payerEmail })
   }
 
   // result = { balance, transaction } si la operación se completó, null si se canceló.
   // El saldo y el historial se actualizan aquí, al cerrar el comprobante, para que
   // el usuario vea el cambio en vez de que ocurra detrás del diálogo.
-  function closeDialog(result) {
+  function closeDialog(result: MovementResult | null) {
     setConfirming(false)
     if (!result) return
     updateBalance(result.balance)

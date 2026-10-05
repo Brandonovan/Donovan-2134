@@ -1,7 +1,24 @@
 import styles from './MethodRow.module.css'
+import type { ReactNode } from 'react'
 
 // Opción seleccionable de un método guardado (tarjeta o cuenta), con eliminación en dos pasos.
 // chipClassName permite teñir el chip (p. ej. con el color de la marca).
+type Props = {
+  name: string
+  selected: boolean
+  disabled?: boolean
+  onSelect: () => void
+  chip: ReactNode
+  chipClassName?: string
+  label: ReactNode
+  badge?: ReactNode
+  meta?: ReactNode
+  confirming: boolean
+  onAskRemove: () => void
+  onCancelRemove: () => void
+  onRemove: () => void
+}
+
 export function MethodRow({
   name,
   selected,
@@ -16,7 +33,7 @@ export function MethodRow({
   onAskRemove,
   onCancelRemove,
   onRemove,
-}) {
+}: Props) {
   return (
     <div className={`${styles.row} ${selected ? styles.selected : ''} ${disabled ? styles.disabled : ''}`}>
       <div className={styles.main}>

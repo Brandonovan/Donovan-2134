@@ -1,19 +1,28 @@
 import { useState } from 'react'
+import type { FormEvent } from 'react'
+import type { AccountFormValues } from '../../hooks/useBankAccounts'
 import { Button } from '@/components/ui/Button/Button'
 import { Input } from '@/components/ui/Input/Input'
 import { bankName, formatClabe, sanitizeClabe, validateClabe } from '../../utils/clabe'
 import styles from '../AddCardForm/AddCardForm.module.css'
 
 // holder = nombre del usuario: la cuenta debe estar a su nombre, así que no se edita.
-export function AddBankAccountForm({ holder, onAdd, onCancel }) {
+type Props = {
+  holder: string
+  // No se usa lo que devuelva: el formulario solo lo llama y atiende si lanza.
+  onAdd: (values: AccountFormValues) => void
+  onCancel: () => void
+}
+
+export function AddBankAccountForm({ holder, onAdd, onCancel }: Props) {
   const [clabe, setClabe] = useState('')
-  const [error, setError] = useState()
+  const [error, setError] = useState<string | undefined>()
   const [submitError, setSubmitError] = useState('')
 
   const digits = sanitizeClabe(clabe)
   const hint = digits.length >= 3 ? bankName(digits.slice(0, 3)) : '18 dígitos, la encuentras en tu app bancaria'
 
-  function handleSubmit(event) {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const validationError = validateClabe(digits)
     setError(validationError)
@@ -22,7 +31,7 @@ export function AddBankAccountForm({ holder, onAdd, onCancel }) {
     try {
       onAdd({ clabe: digits, holder })
     } catch (addError) {
-      setSubmitError(addError.message)
+      setSubmitError(addError instanceof Error ? addError.message : 'No pudimos guardar la cuenta')
     }
   }
 

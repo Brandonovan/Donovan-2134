@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import type { FormEvent } from 'react'
+import type { CardFormErrors, CardFormValues } from '../../utils/card'
 import { Button } from '@/components/ui/Button/Button'
 import { Input } from '@/components/ui/Input/Input'
 import { SegmentedControl } from '@/components/ui/SegmentedControl/SegmentedControl'
@@ -14,24 +16,34 @@ import {
 } from '../../utils/card'
 import styles from './AddCardForm.module.css'
 
-const INITIAL_VALUES = { number: '', holder: '', expiry: '', type: 'debit' }
+const INITIAL_VALUES: CardFormValues = { number: '', holder: '', expiry: '', type: 'debit' }
 
-const FORMATTERS = { number: formatCardNumber, expiry: formatExpiry }
+// Solo dos campos se reformatean mientras se escribe; el resto pasa tal cual.
+const FORMATTERS: Partial<Record<keyof CardFormValues, (value: string) => string>> = {
+  number: formatCardNumber,
+  expiry: formatExpiry,
+}
 
-export function AddCardForm({ onAdd, onCancel }) {
+type Props = {
+  // No se usa lo que devuelva: el formulario solo lo llama y atiende si lanza.
+  onAdd: (values: CardFormValues) => void
+  onCancel: () => void
+}
+
+export function AddCardForm({ onAdd, onCancel }: Props) {
   const [values, setValues] = useState(INITIAL_VALUES)
-  const [errors, setErrors] = useState({})
+  const [errors, setErrors] = useState<CardFormErrors>({})
   const [submitError, setSubmitError] = useState('')
 
   const brand = detectBrand(onlyDigits(values.number))
 
-  function setField(name, value) {
+  function setField(name: keyof CardFormValues, value: string) {
     setValues((current) => ({ ...current, [name]: FORMATTERS[name]?.(value) ?? value }))
     setErrors((current) => ({ ...current, [name]: undefined }))
     setSubmitError('')
   }
 
-  function handleSubmit(event) {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const clean = sanitizeCardForm(values)
     const validationErrors = validateCardForm(clean)
@@ -41,7 +53,7 @@ export function AddCardForm({ onAdd, onCancel }) {
     try {
       onAdd(clean)
     } catch (error) {
-      setSubmitError(error.message)
+      setSubmitError(error instanceof Error ? error.message : 'No pudimos guardar la tarjeta')
     }
   }
 

@@ -1,4 +1,6 @@
 import { useId, useState } from 'react'
+import type { FormEvent } from 'react'
+import type { BankAccount, Card, MovementResult, OperationMode } from '../../types'
 import { Button } from '@/components/ui/Button/Button'
 import { Dialog } from '@/components/ui/Dialog/Dialog'
 import { Input } from '@/components/ui/Input/Input'
@@ -7,6 +9,14 @@ import { formatDateTime } from '@/utils/formatDateTime'
 import { brandInfo, cardLabel, onlyDigits, validateCvv } from '../../utils/card'
 import { accountLabel } from '../../utils/clabe'
 import styles from './OperationDialog.module.css'
+
+// El método de pago es una tarjeta al recargar y una cuenta al retirar.
+type Method = Card | BankAccount
+
+// Card y BankAccount ya se distinguen por sus propios campos, así que el guard
+// no necesita un discriminante inventado. Antes esta relación entre `mode` y el
+// tipo del método era tácita; ahora el compilador la comprueba.
+const isCard = (method: Method): method is Card => 'brand' in method
 
 const COPY = {
   deposit: {
@@ -30,7 +40,15 @@ const COPY = {
 }
 
 // Folio corto y legible a partir del id de la transacción.
-const folio = (id) => id.replace(/-/g, '').slice(0, 10).toUpperCase()
+type Copy = (typeof COPY)[OperationMode]
+
+type StepProps = {
+  titleId: string
+  copy: Copy
+}
+
+// Folio corto y legible a partir del id de la transacción.
+const folio = (id: string): string => id.replace(/-/g, '').slice(0, 10).toUpperCase()
 
 function CheckIcon() {
   return (
@@ -41,18 +59,41 @@ function CheckIcon() {
   )
 }
 
-function ConfirmStep({ titleId, copy, mode, method, amount, balanceAfter, error, onCancel, onConfirm }) {
-  const [cvv, setCvv] = useState('')
-  const [cvvError, setCvvError] = useState()
-  const needsCvv = mode === 'deposit'
-  const { cvv: cvvLength } = brandInfo(method.brand)
-  const cvvHint =
-    method.brand === 'amex' ? 'Los 4 dígitos al frente de tu tarjeta' : 'Los 3 dígitos al reverso de tu tarjeta'
+type ConfirmProps = StepProps & {
+  mode: OperationMode
+  method: Method
+  amount: number
+  balanceAfter: number
+  error: string
+  onCancel: () => void
+  onConfirm: (cvv?: string) => void
+}
 
-  function handleSubmit(event) {
+function ConfirmStep({
+  titleId,
+  copy,
+  mode,
+  method,
+  amount,
+  balanceAfter,
+  error,
+  onCancel,
+  onConfirm,
+}: ConfirmProps) {
+  const [cvv, setCvv] = useState('')
+  const [cvvError, setCvvError] = useState<string | undefined>()
+  const needsCvv = mode === 'deposit'
+  const card = isCard(method) ? method : null
+  const { cvv: cvvLength } = brandInfo(card?.brand ?? null)
+  const cvvHint =
+    card?.brand === 'amex'
+      ? 'Los 4 dígitos al frente de tu tarjeta'
+      : 'Los 3 dígitos al reverso de tu tarjeta'
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (needsCvv) {
-      const validationError = validateCvv(cvv, method.brand)
+      const validationError = validateCvv(cvv, card?.brand ?? null)
       setCvvError(validationError)
       if (validationError) return
     }
@@ -69,7 +110,7 @@ function ConfirmStep({ titleId, copy, mode, method, amount, balanceAfter, error,
       <dl className={styles.details}>
         <div>
           <dt>{copy.methodLabel}</dt>
-          <dd>{mode === 'deposit' ? cardLabel(method) : accountLabel(method)}</dd>
+          <dd>{isCard(method) ? cardLabel(method) : accountLabel(method)}</dd>
         </div>
         {mode === 'withdrawal' && (
           <div>
@@ -128,7 +169,7 @@ function ConfirmStep({ titleId, copy, mode, method, amount, balanceAfter, error,
   )
 }
 
-function ProcessingStep({ titleId, copy }) {
+function ProcessingStep({ titleId, copy }: StepProps) {
   return (
     <div className={`${styles.step} ${styles.centered}`} role="status">
       <span className={styles.spinner} aria-hidden="true" />
@@ -140,7 +181,15 @@ function ProcessingStep({ titleId, copy }) {
   )
 }
 
-function SuccessStep({ titleId, copy, mode, method, result, onDone }) {
+type SuccessProps = StepProps & {
+  // Ya no recibe `mode`: distinguir tarjeta de cuenta lo hace isCard, que mira
+  // el dato en vez de fiarse de un parámetro paralelo que podría discrepar.
+  method: Method
+  result: MovementResult
+  onDone: () => void
+}
+
+function SuccessStep({ titleId, copy, method, result, onDone }: SuccessProps) {
   const { balance, transaction } = result
 
   return (
@@ -155,7 +204,7 @@ function SuccessStep({ titleId, copy, mode, method, result, onDone }) {
       <dl className={`${styles.details} ${styles.receipt}`}>
         <div>
           <dt>{copy.methodLabel}</dt>
-          <dd>{mode === 'deposit' ? cardLabel(method) : accountLabel(method)}</dd>
+          <dd>{isCard(method) ? cardLabel(method) : accountLabel(method)}</dd>
         </div>
         <div>
           <dt>Nuevo saldo</dt>
@@ -182,13 +231,33 @@ function SuccessStep({ titleId, copy, mode, method, result, onDone }) {
 // onConfirm(cvv) hace la operación y devuelve { balance, transaction }; si falla,
 // se regresa a confirmar con el error. onClose(result) recibe el resultado si la
 // operación se completó (o null si se canceló).
-function OperationFlow({ titleId, mode, method, amount, balanceAfter, onConfirm, onClose, onDismissibleChange }) {
-  const [step, setStep] = useState('confirm')
+type FlowProps = {
+  titleId: string
+  mode: OperationMode
+  method: Method
+  amount: number
+  balanceAfter: number
+  onConfirm: (cvv?: string) => Promise<MovementResult>
+  onClose: (result: MovementResult | null) => void
+  onDismissibleChange: (dismissible: boolean) => void
+}
+
+function OperationFlow({
+  titleId,
+  mode,
+  method,
+  amount,
+  balanceAfter,
+  onConfirm,
+  onClose,
+  onDismissibleChange,
+}: FlowProps) {
+  const [step, setStep] = useState<'confirm' | 'processing' | 'success'>('confirm')
   const [error, setError] = useState('')
-  const [result, setResult] = useState(null)
+  const [result, setResult] = useState<MovementResult | null>(null)
   const copy = COPY[mode]
 
-  async function confirm(cvv) {
+  async function confirm(cvv?: string) {
     setStep('processing')
     setError('')
     onDismissibleChange(false)
@@ -196,7 +265,11 @@ function OperationFlow({ titleId, mode, method, amount, balanceAfter, onConfirm,
       setResult(await onConfirm(cvv))
       setStep('success')
     } catch (operationError) {
-      setError(operationError.message)
+      setError(
+        operationError instanceof Error
+          ? operationError.message
+          : 'No pudimos completar la operación',
+      )
       setStep('confirm')
     } finally {
       onDismissibleChange(true)
@@ -209,9 +282,8 @@ function OperationFlow({ titleId, mode, method, amount, balanceAfter, onConfirm,
       <SuccessStep
         titleId={titleId}
         copy={copy}
-        mode={mode}
         method={method}
-        result={result}
+        result={result as MovementResult}
         onDone={() => onClose(result)}
       />
     )
@@ -231,13 +303,31 @@ function OperationFlow({ titleId, mode, method, amount, balanceAfter, onConfirm,
   )
 }
 
-export function OperationDialog({ open, mode, method, amount, balanceAfter, onConfirm, onClose }) {
+type Props = {
+  open: boolean
+  mode: OperationMode
+  method: Method | undefined
+  amount: number
+  balanceAfter: number
+  onConfirm: (cvv?: string) => Promise<MovementResult>
+  onClose: (result: MovementResult | null) => void
+}
+
+export function OperationDialog({
+  open,
+  mode,
+  method,
+  amount,
+  balanceAfter,
+  onConfirm,
+  onClose,
+}: Props) {
   // Cada paso pone su propio título con este id.
   const titleId = useId()
   // Mientras se procesa no se puede cerrar; al terminar, cerrar (Esc, clic fuera)
   // equivale a "Listo" o "Cancelar" según el paso.
   const [dismissible, setDismissible] = useState(true)
-  const [lastResult, setLastResult] = useState(null)
+  const [lastResult, setLastResult] = useState<MovementResult | null>(null)
 
   return (
     <Dialog
@@ -256,12 +346,12 @@ export function OperationDialog({ open, mode, method, amount, balanceAfter, onCo
           method={method}
           amount={amount}
           balanceAfter={balanceAfter}
-          onConfirm={async (cvv) => {
+          onConfirm={async (cvv?: string) => {
             const result = await onConfirm(cvv)
             setLastResult(result)
             return result
           }}
-          onClose={(result) => {
+          onClose={(result: MovementResult | null) => {
             onClose(result)
             setLastResult(null)
           }}

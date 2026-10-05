@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import styles from './Dialog.module.css'
 
 // Modal sobre <dialog> nativo: el navegador atrapa el foco, cierra con Esc y
@@ -6,11 +6,20 @@ import styles from './Dialog.module.css'
 // está abierto, así cada apertura empieza con su estado limpio.
 // labelledBy = id del título, que pone el contenido (puede cambiar entre pasos).
 // dismissible = false bloquea Esc y el clic fuera (p. ej. mientras se procesa un cobro).
-export function Dialog({ open, onClose, labelledBy, dismissible = true, children }) {
-  const ref = useRef(null)
+type Props = {
+  open: boolean
+  onClose: () => void
+  labelledBy?: string
+  dismissible?: boolean
+  children: ReactNode
+}
+
+export function Dialog({ open, onClose, labelledBy, dismissible = true, children }: Props) {
+  const ref = useRef<HTMLDialogElement>(null)
 
   useEffect(() => {
     const dialog = ref.current
+    if (!dialog) return
     if (open && !dialog.open) dialog.showModal()
     if (!open && dialog.open) dialog.close()
   }, [open])

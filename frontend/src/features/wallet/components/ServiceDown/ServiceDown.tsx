@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import type { GatewayStatus } from '../../merchant/gateway'
 import { Button } from '@/components/ui/Button/Button'
 import { ROUTES } from '@/constants/routes'
 import snailSad from '@/assets/brand/snail-sad.png'
@@ -13,7 +14,7 @@ import styles from './ServiceDown.module.css'
 // abrir SnailPay, antes de que el usuario intente nada: tranquilizarle sobre
 // un dinero por el que todavía no ha preguntado le planta la duda en vez de
 // quitársela. Esa frase va en el error del diálogo, donde la duda ya existe.
-const COPY = {
+const COPY: Record<Exclude<GatewayStatus, 'operational'>, { title: string; detail: string }> = {
   major_outage: {
     title: 'SnailPay no está disponible',
     detail: 'Estamos trabajando para restablecer el servicio. Inténtalo de nuevo en unos minutos.',
@@ -24,7 +25,12 @@ const COPY = {
   },
 }
 
-export function ServiceDown({ reason = 'major_outage', onRetry }) {
+type Props = {
+  reason?: Exclude<GatewayStatus, 'operational'>
+  onRetry?: () => void
+}
+
+export function ServiceDown({ reason = 'major_outage', onRetry }: Props) {
   const { title, detail } = COPY[reason] ?? COPY.major_outage
 
   return (
