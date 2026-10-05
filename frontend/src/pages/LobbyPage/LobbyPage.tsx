@@ -1,4 +1,4 @@
-import { useAuth } from '@/features/auth'
+import { useAuthenticatedUser } from '@/features/auth'
 import {
   BestOdds,
   BetsSummary,
@@ -14,10 +14,20 @@ import { useRequest } from '@/hooks/useRequest'
 import styles from './LobbyPage.module.css'
 
 // Props de estado comunes para los componentes que muestran una petición.
-const requestProps = ({ loading, error, retry }) => ({ loading, error, onRetry: retry })
+type RequestState = {
+  loading: boolean
+  error: Error | null
+  retry: () => void
+}
+
+const requestProps = ({ loading, error, retry }: RequestState) => ({
+  loading,
+  error,
+  onRetry: retry,
+})
 
 export function LobbyPage() {
-  const { user } = useAuth()
+  const user = useAuthenticatedUser()
   const bets = useRequest(getBetHistory)
   const seasonRaces = useRequest(getSeasonRaces)
   const bestOdds = useRequest(getBestOdds)

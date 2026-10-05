@@ -1,8 +1,9 @@
+import type { Transaction } from '@/features/wallet'
 import { useCallback, useState } from 'react'
 import { Link } from 'react-router-dom'
 import snailpayLogo from '@/assets/brand/snailpay.png'
 import { ROUTES } from '@/constants/routes'
-import { useAuth } from '@/features/auth'
+import { useAuthenticatedUser } from '@/features/auth'
 import {
   BalanceCard,
   BankAccounts,
@@ -20,17 +21,17 @@ import { useRequest } from '@/hooks/useRequest'
 import styles from './SnailPayPage.module.css'
 
 export function SnailPayPage() {
-  const { user } = useAuth()
+  const user = useAuthenticatedUser()
   const { wallet, loading, error, retry } = useWallet()
   const gateway = useGatewayStatus()
   const transactions = useRequest(getTransactions)
   const { setData: setTransactions } = transactions
   const payment = usePaymentMethods()
-  const [lastTransactionId, setLastTransactionId] = useState(null)
+  const [lastTransactionId, setLastTransactionId] = useState<string | null>(null)
 
   // El movimiento recién hecho se agrega arriba del historial (sin volver a pedirlo) y se resalta.
   const addTransaction = useCallback(
-    (transaction) => {
+    (transaction: Transaction) => {
       setTransactions((list) => list && [transaction, ...list])
       setLastTransactionId(transaction.id)
     },
@@ -46,7 +47,9 @@ export function SnailPayPage() {
 
   // Si la pasarela no acepta cobros, no tiene sentido enseñar el formulario:
   // el usuario escribiría un monto para que se lo rechacen al confirmar.
-  if (!gateway.isOperational) {
+  // Se compara el estado y no el booleano: así TypeScript estrecha el tipo y
+  // ServiceDown recibe solo los dos motivos que sabe pintar.
+  if (gateway.status !== 'operational') {
     return <ServiceDown reason={gateway.status} onRetry={gateway.retry} />
   }
 

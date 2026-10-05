@@ -1,6 +1,6 @@
 # SnailWin — Front
 
-Página de apuestas de carreras de caracoles, hecha con React + Vite.
+Página de apuestas de carreras de caracoles, hecha con React + Vite + TypeScript.
 
 ## Requisitos
 
@@ -11,9 +11,14 @@ Página de apuestas de carreras de caracoles, hecha con React + Vite.
 ```bash
 npm install     # instalar dependencias
 npm run dev     # servidor de desarrollo (http://localhost:5173)
-npm run build   # build de producción en dist/
+npm run build   # typecheck + build de producción en dist/
 npm run lint    # linter (oxlint)
+npm run typecheck  # solo comprobación de tipos
 ```
+
+`build` comprueba los tipos antes de compilar, así que un error de tipos rompe
+el despliegue en vez de llegar a producción. Vite transpila con esbuild, que no
+comprueba tipos: por eso `tsc` va aparte y solo verifica.
 
 ## Estructura
 

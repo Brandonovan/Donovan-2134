@@ -9,12 +9,11 @@
     /* Tipos de Vite: cubren los imports de .css y de imágenes sin declararlos. */
     "types": ["vite/client"],
 
-    /* La migración es por capas: los archivos .js que quedan se permiten, pero
-       no se comprueban. Ambas opciones desaparecen al terminar. */
-    "allowJs": true,
-    "checkJs": false,
-
     "strict": true,
+    /* Avisan de variables y parámetros que sobran: en una migración es fácil
+       dejar props que ya nadie usa. */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "noUncheckedIndexedAccess": true,
 
     /* Vite compila con esbuild, que transpila archivo a archivo: tsc solo
