@@ -2,6 +2,10 @@
 
 Servicio de SnailPay: autoriza recargas y retiros.
 
+> **Desplegada en https://donovan-2134.onrender.com** — el plan gratuito la
+> apaga tras 15 minutos sin tráfico; abre `/health` y espera a que responda
+> antes de usarla.
+
 > Estado: en construcción. Expone la creación de pagos; los escenarios de
 > rechazo todavía no están implementados.
 

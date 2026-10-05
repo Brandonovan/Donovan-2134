@@ -13,11 +13,21 @@ El repositorio contiene las dos partes del proyecto:
 ## Despliegue
 
 - **Frontend:** https://donovan-2134.vercel.app
-- **Pasarela de pagos:** _(pendiente de enlace)_
+- **Pasarela de pagos:** https://donovan-2134.onrender.com
 
-El frontend desplegado funciona por sí solo: sin `VITE_GATEWAY_URL` apuntando a
-la pasarela, el comercio simulado también simula el cobro. Conectarlos es
-opcional y se explica en `frontend/README.md`.
+### Antes de probar: despierta la pasarela
+
+El plan gratuito de Render apaga el servicio tras 15 minutos sin tráfico, y
+volver a levantarlo tarda cerca de un minuto — tiempo suficiente para que la
+primera petición falle y la aplicación muestre "No pudimos conectar con
+SnailPay".
+
+Abre esto primero y espera a que responda `{"status":"ok"}`:
+
+**https://donovan-2134.onrender.com/health**
+
+Después entra a la aplicación con normalidad. El frontend en sí no se duerme
+nunca: Vercel sirve archivos estáticos desde una CDN y responde al instante.
 
 ## Cómo ejecutarlo
 
