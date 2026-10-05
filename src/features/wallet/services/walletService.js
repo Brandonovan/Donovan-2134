@@ -1,12 +1,15 @@
-import { apiClient, getToken } from '@/services/apiClient'
+import { apiClient } from '@/services/apiClient'
+import { getCurrentUserId } from '@/services/session'
 import { mockRequest, USE_MOCKS } from '@/services/mockRequest'
 import { TRANSACTIONS, WALLET } from '../mocks/wallet'
 import { cardLabel } from '../utils/card'
 import { accountLabel } from '../utils/clabe'
 
 // --- Simulación del backend ---------------------------------------------
-// Una billetera por sesión (el backend real la identifica por el token),
-// guardada en localStorage para que los movimientos sobrevivan a recargar la página.
+// Una billetera por usuario, guardada en localStorage para que los movimientos
+// sobrevivan a recargar la página. Se indexa por id de usuario y no por token
+// porque el token cambia en cada inicio de sesión: el backend real lo usa para
+// resolver de quién es la petición, no como identidad.
 const FAKE_WALLETS_KEY = 'snailwin_fake_wallets'
 
 function readFakeWallets() {
@@ -18,11 +21,11 @@ function readFakeWallets() {
 }
 
 function readFakeWallet() {
-  return readFakeWallets()[getToken()] ?? { ...WALLET, transactions: TRANSACTIONS }
+  return readFakeWallets()[getCurrentUserId()] ?? { ...WALLET, transactions: TRANSACTIONS }
 }
 
 function saveFakeWallet(wallet) {
-  localStorage.setItem(FAKE_WALLETS_KEY, JSON.stringify({ ...readFakeWallets(), [getToken()]: wallet }))
+  localStorage.setItem(FAKE_WALLETS_KEY, JSON.stringify({ ...readFakeWallets(), [getCurrentUserId()]: wallet }))
 }
 
 // CVV para probar un cobro rechazado por el banco.
