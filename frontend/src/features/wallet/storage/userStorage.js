@@ -1,9 +1,12 @@
 import { getCurrentUserId } from '@/services/session'
 
-// Listas guardadas en este navegador (tarjetas, cuentas CLABE), separadas por usuario.
-// Solo se guarda lo necesario para mostrarlas: NUNCA el número completo de una tarjeta,
-// su CVV ni la CLABE completa. Cuando exista el backend, cada método se registrará en el
-// servidor (las tarjetas, tokenizadas con la pasarela) y aquí solo quedará su referencia.
+// Listas guardadas en este navegador, separadas por usuario. Es solo el
+// mecanismo de almacenamiento: qué va dentro lo decide quien lo use.
+//
+// Las listas que ve la interfaz (tarjetas, cuentas CLABE) guardan únicamente lo
+// necesario para mostrarlas, nunca el número completo ni el CVV. La excepción
+// es merchant/vault.js, que simula una bóveda de servidor y está documentada
+// como tal.
 export const STORAGE_KEYS = {
   cards: 'snailwin_cards',
   bankAccounts: 'snailwin_bank_accounts',

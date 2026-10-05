@@ -1,10 +1,12 @@
 import { useCallback } from 'react'
+import * as vault from '../merchant/vault'
 import { STORAGE_KEYS } from '../storage/userStorage'
 import { detectBrand, MAX_CARDS } from '../utils/card'
 import { useStoredList } from './useStoredList'
 
-// Recibe los datos ya limpios y validados del formulario y devuelve
-// el registro a guardar: sin el número completo.
+// Recibe los datos ya limpios y validados del formulario y devuelve el registro
+// que ve la interfaz: sin el número completo. El número va a la bóveda (ver
+// merchant/vault), que es el único sitio que lo guarda.
 function toStoredCard({ number, holder, expiry, type }) {
   const [month, year] = expiry.split('/').map(Number)
   return {
@@ -20,7 +22,9 @@ function toStoredCard({ number, holder, expiry, type }) {
 }
 
 export function useCards() {
-  const [cards, update] = useStoredList(STORAGE_KEYS.cards)
+  // Las tarjetas registradas antes de que existiera la bóveda no tienen número
+  // guardado, así que no pueden cobrar. Se descartan al cargar.
+  const [cards, update] = useStoredList(STORAGE_KEYS.cards, (card) => vault.cards.has(card.id))
 
   // Lanza un Error con un mensaje para el usuario si no se puede agregar.
   const addCard = useCallback(
@@ -38,13 +42,27 @@ export function useCards() {
       )
       if (duplicated) throw new Error('Ya tienes guardada esta tarjeta')
 
+      vault.cards.save(card.id, {
+        number: data.number,
+        expMonth: card.expMonth,
+        expYear: card.expYear,
+        holder: card.holder,
+      })
       update([card, ...cards])
       return card
     },
     [cards, update],
   )
 
-  const removeCard = useCallback((id) => update(cards.filter((card) => card.id !== id)), [cards, update])
+  // Al borrar una tarjeta se borra también su entrada en la bóveda: un número
+  // huérfano no le sirve a nadie y sigue siendo un dato sensible guardado.
+  const removeCard = useCallback(
+    (id) => {
+      vault.cards.remove(id)
+      update(cards.filter((card) => card.id !== id))
+    },
+    [cards, update],
+  )
 
   return { cards, addCard, removeCard }
 }
