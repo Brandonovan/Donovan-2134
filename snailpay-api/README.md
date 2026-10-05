@@ -53,6 +53,9 @@ hacerlo fallar provocaría reinicios en bucle.
 El interruptor. Abierto a propósito: existe para poder demostrar la caída desde
 cualquier sitio sin configurar nada (ver limitaciones).
 
+La cabecera `Content-Type` es obligatoria: sin ella Express no parsea el cuerpo
+y la petición se rechaza.
+
 ```bash
 # Simular una caída
 curl -X PUT http://localhost:3000/admin/status   -H "Content-Type: application/json" -d '{"status":"major_outage"}'
