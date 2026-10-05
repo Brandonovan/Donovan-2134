@@ -11,11 +11,6 @@ const schema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(3000),
   CORS_ORIGIN: z.string().url().default('http://localhost:5173'),
-
-  // Obligatoria y sin valor por defecto: un servicio con superficie de
-  // administración no debe arrancar en un estado ambiguo, y un valor por
-  // defecto sería una clave que conoce todo el que lea el repositorio.
-  ADMIN_KEY: z.string().min(16, 'ADMIN_KEY debe tener al menos 16 caracteres'),
 })
 
 const parsed = schema.safeParse(process.env)

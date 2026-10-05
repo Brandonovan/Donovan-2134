@@ -13,7 +13,7 @@ Servicio de SnailPay: autoriza recargas y retiros.
 
 ```bash
 npm install
-cp .env.example .env     # obligatorio: ADMIN_KEY no tiene valor por defecto
+cp .env.example .env     # opcional: los valores por defecto sirven en local
 npm run dev              # http://localhost:3000, recarga al guardar
 npm run typecheck        # comprueba tipos sin compilar
 npm run build            # compila a dist/
@@ -46,16 +46,15 @@ hacerlo fallar provocaría reinicios en bucle.
 
 ### `PUT /admin/status`
 
-El interruptor. Requiere la cabecera `X-Admin-Key`, porque un endpoint abierto
-que desactiva los cobros es un botón de denegación de servicio para quien lo
-descubra.
+El interruptor. Abierto a propósito: existe para poder demostrar la caída desde
+cualquier sitio sin configurar nada (ver limitaciones).
 
 ```bash
 # Simular una caída
-curl -X PUT http://localhost:3000/admin/status   -H "Content-Type: application/json" -H "X-Admin-Key: $ADMIN_KEY"   -d '{"status":"major_outage"}'
+curl -X PUT http://localhost:3000/admin/status   -H "Content-Type: application/json" -d '{"status":"major_outage"}'
 
 # Restaurar
-curl -X PUT http://localhost:3000/admin/status   -H "Content-Type: application/json" -H "X-Admin-Key: $ADMIN_KEY"   -d '{"status":"operational"}'
+curl -X PUT http://localhost:3000/admin/status   -H "Content-Type: application/json" -d '{"status":"operational"}'
 ```
 
 El estado vive en memoria y vuelve a `operational` al reiniciar el proceso: es
@@ -205,6 +204,12 @@ Las dos salen de lo mismo: el servicio no guarda nada.
 peticiones con la misma `reference` producen dos cobros. Un reintento por
 timeout cobraría dos veces.
 
+**El interruptor de estado no está protegido.** `PUT /admin/status` no pide
+credencial alguna: cualquiera que descubra la ruta puede desactivar los cobros.
+Es una decisión consciente para que la demostración funcione en cualquier
+entorno sin configurar nada, pero en un servicio real iría tras una superficie
+de administración con autenticación.
+
 **No hay límite de intentos.** No recuerda cuántas veces se ha probado una
 tarjeta, así que no puede frenar el *card testing* — mandar miles de números
 robados para ver cuáles aprueban. Conviene decirlo porque es la defensa que de
@@ -261,11 +266,5 @@ primer módulo que se monte.
 | `PORT`        | `3000`                  | Puerto de escucha                         |
 | `CORS_ORIGIN` | `http://localhost:5173` | Origen del frontend autorizado a llamar   |
 | `NODE_ENV`    | `development`           | En `development` los errores 500 detallan |
-| `ADMIN_KEY`   | — **obligatoria**       | Clave del interruptor de estado           |
-
-`ADMIN_KEY` no tiene valor por defecto a propósito: un servicio con superficie de
-administración no debe arrancar en un estado ambiguo, y un valor por defecto
-sería una clave que conoce cualquiera que lea el repositorio. Mínimo 16
-caracteres.
 
 Se validan al arrancar: si alguna viene mal, el proceso termina con el motivo.
