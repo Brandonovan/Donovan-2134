@@ -8,14 +8,19 @@ import styles from './ServiceDown.module.css'
 // pasarela conteste que está caída no es lo mismo que no poder alcanzarla.
 // Confundirlas haría que el usuario revise su conexión cuando el problema es
 // nuestro, o al revés.
+//
+// Ninguno de los dos menciona el saldo a propósito. Esta pantalla aparece al
+// abrir SnailPay, antes de que el usuario intente nada: tranquilizarle sobre
+// un dinero por el que todavía no ha preguntado le planta la duda en vez de
+// quitársela. Esa frase va en el error del diálogo, donde la duda ya existe.
 const COPY = {
   major_outage: {
     title: 'SnailPay no está disponible',
-    detail: 'Estamos trabajando para restablecer el servicio. Tu saldo está a salvo; inténtalo de nuevo en unos minutos.',
+    detail: 'Estamos trabajando para restablecer el servicio. Inténtalo de nuevo en unos minutos.',
   },
   unreachable: {
     title: 'No pudimos conectar con SnailPay',
-    detail: 'Revisa tu conexión a internet y vuelve a intentarlo. Si el problema sigue, el servicio podría estar en mantenimiento.',
+    detail: 'No obtuvimos respuesta del servicio. Revisa tu conexión e inténtalo de nuevo.',
   },
 }
 
