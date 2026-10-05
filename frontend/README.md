@@ -64,7 +64,7 @@ peticiones, que es justo lo que sustituirá a esta simulación.
 npm test
 ```
 
-59 pruebas de lógica, sin DOM: lo que se comprueba son reglas, no renderizado.
+95 pruebas de lógica, sin DOM: lo que se comprueba son reglas, no renderizado.
 `vitest.setup.ts` pone un `localStorage` en memoria y lo vacía entre pruebas.
 
 - **Contraseña** — el formato del hash, que el salt sea distinto por usuario,
@@ -79,6 +79,19 @@ npm test
 - **Libro de cuentas** — que los depósitos sumen, los retiros resten, el
   historial ordene por recencia, cada usuario tenga su billetera, y que el saldo
   no acumule error de coma flotante.
+- **Sesión** — que el token sea opaco y distinto en cada inicio, que uno
+  inventado no autentique, la caducidad a 24 horas, la poda de filas huérfanas y
+  de formato antiguo, y que cerrar sesión **revoque**: reponer el token a mano
+  no la revive.
+- **Registro e inicio de sesión** — que no quede la contraseña en claro, que el
+  usuario devuelto no lleve su hash, que una contraseña incorrecta y un correo
+  inexistente den el **mismo** mensaje, y que la sesión sobreviva a recargar la
+  página.
+
+La recarga se prueba reimportando el módulo con `vi.resetModules()`, que es lo
+que hace el navegador al refrescar: el código se evalúa otra vez y lo único que
+persiste es `localStorage`. Así se comprueba de verdad que el usuario se
+reconstruye desde el token, y no que siga en memoria.
 
 Hay además un **test de contrato** que lee `AMOUNT_LIMITS` de snailpay-api y lo
 compara con el del cliente. Las constantes viven en dos repositorios y nada
