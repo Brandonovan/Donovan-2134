@@ -1,7 +1,7 @@
 import { useContext } from 'react'
-import { WalletContext } from '../context/WalletContext'
+import { WalletContext, type WalletContextValue } from '../context/WalletContext'
 
-export function useWallet() {
+export function useWallet(): WalletContextValue {
   const context = useContext(WalletContext)
   if (!context) {
     throw new Error('useWallet debe usarse dentro de <WalletProvider>')

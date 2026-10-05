@@ -6,7 +6,7 @@
 //
 // El criterio: específico donde ayuda a corregir una errata, vago donde la
 // precisión solo le serviría a quien esté probando tarjetas robadas.
-const MESSAGES = {
+const MESSAGES: Record<string, string> = {
   // Cobros
   cc_rejected_insufficient_amount: 'Tu tarjeta no tiene saldo suficiente.',
   cc_rejected_bad_filled_security_code: 'Revisa el código de seguridad de tu tarjeta.',
@@ -28,6 +28,6 @@ const MESSAGES = {
 // defraudador qué lo delató es regalarle el mapa.
 const FALLBACK = 'No pudimos procesar la operación. Intenta con otro medio de pago.'
 
-export function messageFor(statusDetail) {
+export function messageFor(statusDetail: string): string {
   return MESSAGES[statusDetail] ?? FALLBACK
 }

@@ -1,12 +1,15 @@
 import { useCallback } from 'react'
 import * as vault from '../merchant/vault'
+import type { BankAccount } from '../types'
+
+export type AccountFormValues = { clabe: string; holder: string }
 import { STORAGE_KEYS } from '../storage/userStorage'
 import { accountLabel, MAX_ACCOUNTS } from '../utils/clabe'
 import { useStoredList } from './useStoredList'
 
 // Recibe la CLABE ya validada y devuelve el registro que ve la interfaz: sin la
 // CLABE completa. La CLABE va a la bóveda (ver merchant/vault).
-function toStoredAccount({ clabe, holder }) {
+function toStoredAccount({ clabe, holder }: AccountFormValues): BankAccount {
   return {
     id: crypto.randomUUID(),
     bankCode: clabe.slice(0, 3),
@@ -19,13 +22,13 @@ function toStoredAccount({ clabe, holder }) {
 export function useBankAccounts() {
   // Las cuentas registradas antes de que existiera la bóveda no tienen CLABE
   // guardada, así que no pueden recibir un retiro. Se descartan al cargar.
-  const [accounts, update] = useStoredList(STORAGE_KEYS.bankAccounts, (account) =>
+  const [accounts, update] = useStoredList<BankAccount>(STORAGE_KEYS.bankAccounts, (account) =>
     vault.accounts.has(account.id),
   )
 
   // Lanza un Error con un mensaje para el usuario si no se puede agregar.
   const addAccount = useCallback(
-    (data) => {
+    (data: AccountFormValues) => {
       const account = toStoredAccount(data)
       if (accounts.length >= MAX_ACCOUNTS) {
         throw new Error(`Puedes registrar hasta ${MAX_ACCOUNTS} cuentas`)
@@ -44,7 +47,7 @@ export function useBankAccounts() {
 
   // Al borrar la cuenta se borra también su CLABE de la bóveda.
   const removeAccount = useCallback(
-    (id) => {
+    (id: string) => {
       vault.accounts.remove(id)
       update(accounts.filter((account) => account.id !== id))
     },

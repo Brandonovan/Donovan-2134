@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { readStatus } from '../merchant/gateway'
+import { readStatus, type GatewayStatus } from '../merchant/gateway'
 
 // Consulta el estado de la pasarela al montar, y de nuevo cada vez que se
 // reintenta.
@@ -9,7 +9,7 @@ import { readStatus } from '../merchant/gateway'
 // estado al resolverse la promesa; volver a 'checking' ocurre en el evento que
 // lo provoca, no dentro del efecto.
 export function useGatewayStatus() {
-  const [status, setStatus] = useState('checking')
+  const [status, setStatus] = useState<GatewayStatus | 'checking'>('checking')
   const [attempt, setAttempt] = useState(0)
 
   useEffect(() => {

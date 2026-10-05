@@ -1,5 +1,27 @@
 import { readUserList, saveUserList } from '../storage/userStorage'
 
+// Lo que se guarda de cada medio de pago. Nada de esto sale de este módulo.
+export type VaultCard = {
+  id: string
+  number: string
+  expMonth: number
+  expYear: number
+  holder: string
+}
+
+export type VaultAccount = {
+  id: string
+  clabe: string
+  holder: string
+}
+
+type Vault<T extends { id: string }> = {
+  save: (id: string, data: Omit<T, 'id'>) => void
+  read: (id: string) => T | null
+  has: (id: string) => boolean
+  remove: (id: string) => void
+}
+
 // --- Bóveda de medios de pago -------------------------------------------
 //
 // ESTE ES EL ÚNICO MÓDULO QUE GUARDA DATOS COMPLETOS: el número de tarjeta y
@@ -23,32 +45,32 @@ const KEYS = {
   accounts: 'snailwin_account_vault',
 }
 
-function vaultFor(key) {
+function vaultFor<T extends { id: string }>(key: string): Vault<T> {
   return {
     save(id, data) {
-      const rest = readUserList(key).filter((entry) => entry.id !== id)
-      saveUserList(key, [{ id, ...data }, ...rest])
+      const rest = readUserList<T>(key).filter((entry) => entry.id !== id)
+      saveUserList<T>(key, [{ id, ...data } as T, ...rest])
     },
 
     read(id) {
-      return readUserList(key).find((entry) => entry.id === id) ?? null
+      return readUserList<T>(key).find((entry) => entry.id === id) ?? null
     },
 
     has(id) {
-      return readUserList(key).some((entry) => entry.id === id)
+      return readUserList<T>(key).some((entry) => entry.id === id)
     },
 
     remove(id) {
-      saveUserList(
+      saveUserList<T>(
         key,
-        readUserList(key).filter((entry) => entry.id !== id),
+        readUserList<T>(key).filter((entry) => entry.id !== id),
       )
     },
   }
 }
 
 // { id, number, expMonth, expYear, holder }
-export const cards = vaultFor(KEYS.cards)
+export const cards = vaultFor<VaultCard>(KEYS.cards)
 
 // { id, clabe, holder }
-export const accounts = vaultFor(KEYS.accounts)
+export const accounts = vaultFor<VaultAccount>(KEYS.accounts)

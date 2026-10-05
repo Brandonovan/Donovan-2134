@@ -12,22 +12,26 @@ export const STORAGE_KEYS = {
   bankAccounts: 'snailwin_bank_accounts',
 }
 
-function readAll(key) {
+function readAll<T>(key: string): Record<string, T[]> {
   try {
-    return JSON.parse(localStorage.getItem(key)) ?? {}
+    return (JSON.parse(localStorage.getItem(key) ?? 'null') as Record<string, T[]>) ?? {}
   } catch {
     return {}
   }
 }
 
-export function readUserList(key) {
-  const list = readAll(key)[getCurrentUserId()]
+// El tipo lo decide quien llama: este modulo solo sabe de listas por usuario.
+export function readUserList<T>(key: string): T[] {
+  const list = readAll<T>(key)[getCurrentUserId() ?? '']
   return Array.isArray(list) ? list : []
 }
 
-export function saveUserList(key, list) {
+export function saveUserList<T>(key: string, list: T[]): void {
   try {
-    localStorage.setItem(key, JSON.stringify({ ...readAll(key), [getCurrentUserId()]: list }))
+    localStorage.setItem(
+      key,
+      JSON.stringify({ ...readAll<T>(key), [getCurrentUserId() ?? '']: list }),
+    )
   } catch {
     // Sin almacenamiento disponible (modo privado, cuota llena): la lista
     // sigue en memoria durante la sesión.
