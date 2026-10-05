@@ -1,6 +1,8 @@
 import { createHash, randomBytes } from 'node:crypto'
 import { detectBrand, firstSix, lastFour } from '../../shared/card.js'
 import { toAmount, toCents } from '../../shared/money.js'
+import { env } from '../../config/env.js'
+import { authorizationDelay } from '../../shared/delay.js'
 import { resolveOutcome } from './payments.outcomes.js'
 import type { Payment, PaymentRequest } from './payments.schema.js'
 
@@ -46,9 +48,12 @@ function payerId(email: string): string {
   return createHash('sha256').update(email).digest('hex').slice(0, 16)
 }
 
-export function createPayment(request: PaymentRequest): Payment {
-  // Aquí es donde una pasarela real pediría autorización al banco emisor. En su
-  // lugar, el resultado lo decide el nombre del titular (ver payments.outcomes).
+export async function createPayment(request: PaymentRequest): Promise<Payment> {
+  // Aquí es donde una pasarela real pediría autorización al banco emisor: se
+  // espera lo que tardaría esa ida y vuelta, y el resultado lo decide el nombre
+  // del titular (ver payments.outcomes).
+  await authorizationDelay(env.AUTHORIZATION_DELAY_MS)
+
   const outcome = resolveOutcome(request.card.cardholder_name)
 
   const id = paymentId()

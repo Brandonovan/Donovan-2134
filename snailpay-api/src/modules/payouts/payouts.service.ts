@@ -1,6 +1,8 @@
 import { createHash, randomBytes } from 'node:crypto'
 import { bankCode, bankName, lastFour } from '../../shared/clabe.js'
 import { toAmount, toCents } from '../../shared/money.js'
+import { env } from '../../config/env.js'
+import { authorizationDelay } from '../../shared/delay.js'
 import { resolveOutcome } from './payouts.outcomes.js'
 import type { Payout, PayoutRequest } from './payouts.schema.js'
 
@@ -33,7 +35,10 @@ function payeeId(email: string): string {
   return createHash('sha256').update(email).digest('hex').slice(0, 16)
 }
 
-export function createPayout(request: PayoutRequest): Payout {
+export async function createPayout(request: PayoutRequest): Promise<Payout> {
+  // Una dispersión por SPEI tampoco es instantánea: se simula esa espera.
+  await authorizationDelay(env.AUTHORIZATION_DELAY_MS)
+
   const outcome = resolveOutcome(request.account.clabe)
 
   const id = payoutId()

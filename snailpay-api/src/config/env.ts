@@ -11,6 +11,10 @@ const schema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(3000),
   CORS_ORIGIN: z.string().url().default('http://localhost:5173'),
+
+  // Milisegundos que tarda la autorización simulada. En 0 responde al
+  // instante, útil para tests; el valor por defecto imita a un banco real.
+  AUTHORIZATION_DELAY_MS: z.coerce.number().int().min(0).max(10_000).default(1200),
 })
 
 const parsed = schema.safeParse(process.env)

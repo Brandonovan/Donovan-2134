@@ -367,5 +367,16 @@ primer módulo que se monte.
 | `PORT`        | `3000`                  | Puerto de escucha                         |
 | `CORS_ORIGIN` | `http://localhost:5173` | Origen del frontend autorizado a llamar   |
 | `NODE_ENV`    | `development`           | En `development` los errores 500 detallan |
+| `AUTHORIZATION_DELAY_MS` | `1200`       | Latencia simulada de la autorización      |
+
+`AUTHORIZATION_DELAY_MS` existe porque un cobro real no es instantáneo: la
+pasarela habla con el banco emisor y eso lleva entre uno y tres segundos.
+Devolver en 130 ms haría que el paso de "procesando" de la interfaz pasara
+volando y que se diseñara contra un tiempo que no existe fuera de este mock. Se
+aplica una variación de ±20%, porque una latencia clavada en el mismo número es
+su propia pista de que es falsa.
+
+Solo afecta a `/payments` y `/payouts`. `/health` y `/status` siguen siendo
+inmediatos: son comprobaciones de estado, no cobros. Con `0` se desactiva.
 
 Se validan al arrancar: si alguna viene mal, el proceso termina con el motivo.
