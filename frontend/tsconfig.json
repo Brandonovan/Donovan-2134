@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+
+    /* Tipos de Vite: cubren los imports de .css y de imágenes sin declararlos. */
+    "types": ["vite/client"],
+
+    /* La migración es por capas: los archivos .js que quedan se permiten, pero
+       no se comprueban. Ambas opciones desaparecen al terminar. */
+    "allowJs": true,
+    "checkJs": false,
+
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+
+    /* Vite compila con esbuild, que transpila archivo a archivo: tsc solo
+       comprueba tipos y no emite nada. */
+    "noEmit": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+
+    /* Sin baseUrl: TypeScript 7 lo eliminó y las rutas van relativas a este
+       archivo. El alias real lo resuelve Vite en vite.config.js. */
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src"]
+}
