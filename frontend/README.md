@@ -52,16 +52,52 @@ fabricar una sesión sin pasar por el formulario, y los guards de ruta solo
 deciden qué se renderiza. Una frontera real exige un servidor que rechace las
 peticiones, que es justo lo que sustituirá a esta simulación.
 
-## Conectar el backend
+## Los dos backends
 
-Los servicios ya tienen la costura preparada:
+La app contempla dos saltos distintos, y hoy solo el segundo existe:
+
+```
+navegador  →  backend del comercio  →  pasarela de pagos
+              (simulado aquí)           (snailpay-api)
+```
+
+`src/features/wallet/merchant/` es el backend del comercio simulado: lleva el
+saldo, el historial, la bóveda de medios de pago y habla con la pasarela.
+**Todo eso es trabajo de servidor**; el navegador lo hace porque ese servidor no
+existe todavía. El día que exista, se borra esa carpeta y `walletService` pasa a
+llamarlo por HTTP: los componentes no se enteran, porque solo conocen la fachada.
 
 ```bash
 # frontend/.env.local (ignorado por git)
-VITE_USE_MOCKS=false
-VITE_API_URL=https://tu-backend.ejemplo.com
+
+# El comercio sigue simulado mientras esté en true.
+VITE_USE_MOCKS=true
+
+# Pasarela de pagos. Si se deja vacía, el comercio simulado también simula el
+# cobro y el front funciona sin levantarla — es el modo del despliegue público.
+VITE_GATEWAY_URL=http://localhost:3000
+
+# Backend del comercio. Solo se usa con VITE_USE_MOCKS=false.
+# VITE_API_URL=https://api.ejemplo.com
 ```
 
-Sin esas variables, la app arranca con la simulación completa. Ten en cuenta que
-todo lo que lleve el prefijo `VITE_` se incrusta en el bundle público: sirve para
-configurar, no para guardar secretos.
+Con `VITE_GATEWAY_URL` apuntando a snailpay-api, los depósitos y retiros se
+cobran de verdad contra ella, con sus escenarios de rechazo. Los nombres de
+titular y las CLABE de prueba están en el README de la pasarela.
+
+Ten en cuenta que todo lo que lleve el prefijo `VITE_` se incrusta en el bundle
+público: sirve para configurar, no para guardar secretos.
+
+## Dónde vive el dato sensible
+
+`merchant/vault.js` es el **único** módulo que guarda el número de tarjeta
+completo y la CLABE. Existe porque la pasarela los necesita en cada cobro y no
+emite tokens, así que alguien tiene que recordarlos; en un montaje real ese
+alguien es el backend del comercio y el navegador no vería ese dato nunca.
+
+Es un límite conocido y deliberado: deja el número en `localStorage`, legible por
+cualquier XSS o por quien tenga el dispositivo. Desaparece el día que la pasarela
+emita tokens.
+
+**El CVV no se guarda en ningún sitio**, tampoco en la bóveda. Se pide en cada
+depósito, viaja a la pasarela y muere ahí.

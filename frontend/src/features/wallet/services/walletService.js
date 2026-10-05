@@ -20,18 +20,18 @@ export function getTransactions() {
 
 // card = tarjeta guardada; cvv = el que el usuario escribió para este cobro.
 // → { balance, transaction }
-export function deposit(amount, { card, cvv }) {
+export function deposit(amount, { card, cvv, payerEmail }) {
   if (!USE_MOCKS) {
     return apiClient('/wallet/deposits', { method: 'POST', body: { amount, cardId: card.id, cvv } })
   }
-  return merchant.deposit(amount, { card, cvv })
+  return merchant.deposit(amount, { card, cvv, payerEmail })
 }
 
 // account = cuenta CLABE registrada a la que se enviará el retiro por SPEI.
 // → { balance, transaction }
-export function withdraw(amount, { account }) {
+export function withdraw(amount, { account, payerEmail }) {
   if (!USE_MOCKS) {
     return apiClient('/wallet/withdrawals', { method: 'POST', body: { amount, accountId: account.id } })
   }
-  return merchant.withdraw(amount, { account })
+  return merchant.withdraw(amount, { account, payerEmail })
 }

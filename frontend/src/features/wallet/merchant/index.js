@@ -10,35 +10,91 @@ import { mockRequest } from '@/services/mockRequest'
 import { validateAmount } from '../utils/amount'
 import { cardLabel } from '../utils/card'
 import { accountLabel } from '../utils/clabe'
-import { post, readWallet } from './ledger.js'
+import * as gateway from './gateway'
+import { post, readWallet } from './ledger'
+import * as vault from './vault'
 
-// CVV para probar un cobro rechazado por el banco.
+// CVV que simula un rechazo del banco cuando no hay pasarela conectada.
 const FAKE_DECLINED_CVV = '000'
 
-function movement(type, amount, { card, cvv, account }) {
+// El saldo es del comercio, no de la pasarela: ella autoriza el cobro y
+// devuelve un comprobante, pero no sabe cuánto tienes. Por eso esta
+// comprobación vive aquí y no se puede delegar.
+function checkAmount(type, amount) {
+  const error = validateAmount(amount, type, readWallet().balance)
+  if (error) throw new Error(error)
+}
+
+// El historial guarda el id que asignó la pasarela, no uno inventado: así cada
+// movimiento del comercio es rastreable hasta la operación que lo originó.
+function toTransaction({ id, type, amount, method, createdAt }) {
+  return { id, type, amount, method, createdAt }
+}
+
+function settle(transaction) {
+  return { balance: post(transaction), transaction }
+}
+
+async function throughGateway(type, amount, { card, cvv, account, payerEmail }) {
+  const reference = crypto.randomUUID()
+
+  if (type === 'deposit') {
+    const stored = vault.cards.read(card.id)
+    if (!stored) throw new Error('No encontramos los datos de esa tarjeta. Vuelve a registrarla.')
+
+    const payment = await gateway.charge({ amount, reference, payerEmail, vaultCard: stored, cvv })
+    return settle(
+      toTransaction({
+        id: payment.id,
+        type,
+        amount: payment.transaction_amount,
+        method: cardLabel(card),
+        createdAt: payment.date_created,
+      }),
+    )
+  }
+
+  const stored = vault.accounts.read(account.id)
+  if (!stored) throw new Error('No encontramos los datos de esa cuenta. Vuelve a registrarla.')
+
+  const result = await gateway.payout({ amount, reference, payeeEmail: payerEmail, vaultAccount: stored })
+  return settle(
+    toTransaction({
+      id: result.id,
+      type,
+      amount: result.transaction_amount,
+      method: `CLABE ${accountLabel(account)}`,
+      createdAt: result.date_created,
+    }),
+  )
+}
+
+// Sin pasarela conectada el comercio simula también el cobro, para que el front
+// funcione solo. Es el camino que usa el despliegue público.
+function locally(type, amount, { card, cvv, account }) {
   return () => {
-    const wallet = readWallet()
-
-    // Se revalida el monto aunque el formulario ya lo hiciera: las reglas del
-    // cliente son UX y cualquiera puede saltárselas llamando al servicio.
-    const amountError = validateAmount(amount, type, wallet.balance)
-    if (amountError) throw new Error(amountError)
-
-    // El CVV solo se usa para autorizar este cobro; no se guarda en ningún lado.
     if (type === 'deposit' && cvv === FAKE_DECLINED_CVV) {
       throw new Error('Tu banco rechazó el cobro. Revisa los datos o usa otra tarjeta.')
     }
 
-    const transaction = {
-      id: crypto.randomUUID(),
-      type,
-      amount,
-      method: type === 'deposit' ? cardLabel(card) : `CLABE ${accountLabel(account)}`,
-      createdAt: new Date().toISOString(),
-    }
-
-    return { balance: post(transaction), transaction }
+    return settle(
+      toTransaction({
+        id: crypto.randomUUID(),
+        type,
+        amount,
+        method: type === 'deposit' ? cardLabel(card) : `CLABE ${accountLabel(account)}`,
+        createdAt: new Date().toISOString(),
+      }),
+    )
   }
+}
+
+function movement(type, amount, options) {
+  checkAmount(type, amount)
+
+  return gateway.isConfigured()
+    ? throughGateway(type, amount, options)
+    : mockRequest(locally(type, amount, options), { delay: 1200 })
 }
 
 export function getWallet() {
@@ -52,10 +108,10 @@ export function getTransactions() {
   return mockRequest(() => readWallet().transactions)
 }
 
-export function deposit(amount, { card, cvv }) {
-  return mockRequest(movement('deposit', amount, { card, cvv }), { delay: 1200 })
+export function deposit(amount, { card, cvv, payerEmail }) {
+  return movement('deposit', amount, { card, cvv, payerEmail })
 }
 
-export function withdraw(amount, { account }) {
-  return mockRequest(movement('withdrawal', amount, { account }), { delay: 1200 })
+export function withdraw(amount, { account, payerEmail }) {
+  return movement('withdrawal', amount, { account, payerEmail })
 }

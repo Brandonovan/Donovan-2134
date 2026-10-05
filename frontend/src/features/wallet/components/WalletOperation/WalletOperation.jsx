@@ -36,7 +36,7 @@ const COPY = {
 // La operación es controlada: el modo y el método (tarjeta o cuenta) se eligen
 // en la tarjeta de métodos y llegan aquí ya resueltos. Este formulario solo arma
 // el monto: la confirmación, el CVV y el comprobante viven en OperationDialog.
-export function WalletOperation({ mode, onModeChange, card, account, onComplete }) {
+export function WalletOperation({ mode, onModeChange, card, account, payerEmail, onComplete }) {
   const { wallet, loading, error, retry, deposit, withdraw, updateBalance } = useWallet()
   const [value, setValue] = useState('')
   const [fieldError, setFieldError] = useState()
@@ -77,7 +77,9 @@ export function WalletOperation({ mode, onModeChange, card, account, onComplete 
 
   // Lo llama el diálogo; si falla, el error se queda en el diálogo.
   function confirm(cvv) {
-    return mode === 'deposit' ? deposit(amount, { card, cvv }) : withdraw(amount, { account })
+    return mode === 'deposit'
+      ? deposit(amount, { card, cvv, payerEmail })
+      : withdraw(amount, { account, payerEmail })
   }
 
   // result = { balance, transaction } si la operación se completó, null si se canceló.

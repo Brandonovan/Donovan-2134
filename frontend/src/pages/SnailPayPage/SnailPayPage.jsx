@@ -95,6 +95,7 @@ export function SnailPayPage() {
           onModeChange={payment.changeMode}
           card={payment.selectedCard}
           account={payment.selectedAccount}
+          payerEmail={user.email}
           onComplete={addTransaction}
         />
       </div>
