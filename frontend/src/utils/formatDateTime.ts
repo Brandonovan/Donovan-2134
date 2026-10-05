@@ -1,3 +1,5 @@
+import type { DateLike } from './formatDate'
+
 // "18 de septiembre, 15:00"
 // Fecha y hora se formatean por separado: si se hace junto, cada navegador
 // decide el conector ("a las", ",", …) y el resultado no es consistente.
@@ -8,7 +10,7 @@ const timeFormatter = new Intl.DateTimeFormat('es-MX', {
   hourCycle: 'h23',
 })
 
-export function formatDateTime(date) {
+export function formatDateTime(date: DateLike): string {
   const value = new Date(date)
   return `${dateFormatter.format(value)}, ${timeFormatter.format(value)}`
 }

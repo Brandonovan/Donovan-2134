@@ -9,17 +9,17 @@ const signedFormatter = new Intl.NumberFormat('es-MX', {
   signDisplay: 'exceptZero',
 })
 
-export function formatCurrency(amount) {
+export function formatCurrency(amount: number): string {
   return formatter.format(amount)
 }
 
 // "+$1,619.50" / "-$968.00"
-export function formatSignedCurrency(amount) {
+export function formatSignedCurrency(amount: number): string {
   return signedFormatter.format(amount)
 }
 
 // Para ejes: "$2.5k", "-$1k", "$800". (El compacto de Intl en es-MX da "2.5 k$".)
-export function formatCompactCurrency(amount) {
+export function formatCompactCurrency(amount: number): string {
   const sign = amount < 0 ? '-' : ''
   const abs = Math.abs(amount)
   if (abs < 1000) return `${sign}$${Math.round(abs)}`
