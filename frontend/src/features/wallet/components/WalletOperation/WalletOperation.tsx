@@ -24,14 +24,14 @@ const COPY = {
   deposit: {
     sign: 1,
     question: '¿Cuánto quieres recargar?',
-    hint: `Mínimo ${formatCurrency(AMOUNT_LIMITS.min)} · máximo ${formatCurrency(AMOUNT_LIMITS.maxDeposit)}`,
+    hint: `Mínimo ${formatCurrency(AMOUNT_LIMITS.min)} · máximo ${formatCurrency(AMOUNT_LIMITS.max)}`,
     concept: 'Recarga',
     action: 'Recargar',
   },
   withdrawal: {
     sign: -1,
     question: '¿Cuánto quieres retirar?',
-    hint: `Mínimo ${formatCurrency(AMOUNT_LIMITS.min)}`,
+    hint: `Mínimo ${formatCurrency(AMOUNT_LIMITS.min)} · máximo ${formatCurrency(AMOUNT_LIMITS.max)}`,
     concept: 'Retiro',
     action: 'Retirar',
   },
@@ -67,7 +67,9 @@ export function WalletOperation({
   const amount = parseAmount(value)
   // Si el monto pasa el límite (saldo al retirar, tope al recargar) no se calcula nada:
   // el resumen queda en ceros y el error se muestra de inmediato, sin esperar al envío.
-  const maxAmount = mode === 'withdrawal' ? balance : AMOUNT_LIMITS.maxDeposit
+  // Al retirar mandan los dos límites: el saldo y el tope por operación.
+  const maxAmount =
+    mode === 'withdrawal' ? Math.min(balance, AMOUNT_LIMITS.max) : AMOUNT_LIMITS.max
   const overLimit = amount > maxAmount
   const operationAmount = overLimit ? 0 : amount
   const balanceAfter = overLimit ? 0 : balance + copy.sign * amount
