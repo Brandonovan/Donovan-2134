@@ -13,7 +13,7 @@ Servicio de SnailPay: autoriza recargas y retiros.
 
 ```bash
 npm install
-cp .env.example .env     # opcional: los valores por defecto sirven en local
+cp .env.example .env     # obligatorio: ADMIN_KEY no tiene valor por defecto
 npm run dev              # http://localhost:3000, recarga al guardar
 npm run typecheck        # comprueba tipos sin compilar
 npm run build            # compila a dist/
@@ -28,6 +28,45 @@ curl http://localhost:3000/health
 ```
 
 ## Endpoints
+
+### `GET /status`
+
+Estado operativo de la pasarela. **Responde 200 siempre**, también cuando está
+caída: si devolviera 503, el cliente no podría distinguir "la pasarela está
+caída" de "no pude alcanzar la pasarela". El estado va en el cuerpo.
+
+```json
+{ "status": "operational", "payments_enabled": true, "checked_at": "2026-10-05T03:50:34.411Z" }
+```
+
+No confundir con `GET /health`, que responde si el **proceso** está vivo y lo usa
+un orquestador para decidir si reinicia el contenedor. `/health` sigue en 200
+aunque la pasarela esté en modo error: ese modo es deliberado, no una caída, y
+hacerlo fallar provocaría reinicios en bucle.
+
+### `PUT /admin/status`
+
+El interruptor. Requiere la cabecera `X-Admin-Key`, porque un endpoint abierto
+que desactiva los cobros es un botón de denegación de servicio para quien lo
+descubra.
+
+```bash
+# Simular una caída
+curl -X PUT http://localhost:3000/admin/status   -H "Content-Type: application/json" -H "X-Admin-Key: $ADMIN_KEY"   -d '{"status":"major_outage"}'
+
+# Restaurar
+curl -X PUT http://localhost:3000/admin/status   -H "Content-Type: application/json" -H "X-Admin-Key: $ADMIN_KEY"   -d '{"status":"operational"}'
+```
+
+El estado vive en memoria y vuelve a `operational` al reiniciar el proceso: es
+preferible tener que volver a apagarlo tras un despliegue que dejar la pasarela
+muerta por un olvido.
+
+Con la pasarela en `major_outage`, `POST /payments` responde **503** con
+`Retry-After: 30` y **corta antes de autenticar y de validar el cuerpo**. Una
+petición sin token o con datos basura recibe igualmente 503, no 401 ni 400: si
+no se va a intentar el cobro, no se gasta trabajo en revisar una tarjeta ni se
+llegan a mirar sus datos.
 
 ### `POST /payments`
 
@@ -222,5 +261,11 @@ primer módulo que se monte.
 | `PORT`        | `3000`                  | Puerto de escucha                         |
 | `CORS_ORIGIN` | `http://localhost:5173` | Origen del frontend autorizado a llamar   |
 | `NODE_ENV`    | `development`           | En `development` los errores 500 detallan |
+| `ADMIN_KEY`   | — **obligatoria**       | Clave del interruptor de estado           |
+
+`ADMIN_KEY` no tiene valor por defecto a propósito: un servicio con superficie de
+administración no debe arrancar en un estado ambiguo, y un valor por defecto
+sería una clave que conoce cualquiera que lea el repositorio. Mínimo 16
+caracteres.
 
 Se validan al arrancar: si alguna viene mal, el proceso termina con el motivo.

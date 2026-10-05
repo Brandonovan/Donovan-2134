@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Variables de entorno: nunca al repositorio. Solo se versiona el ejemplo,
+# que lleva valores de desarrollo y ningún secreto real.
+.env
+.env.*
+!.env.example
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
