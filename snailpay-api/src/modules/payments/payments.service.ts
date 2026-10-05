@@ -1,5 +1,6 @@
 import { createHash, randomBytes } from 'node:crypto'
 import { toAmount, toCents } from '../../shared/money.js'
+import { resolveOutcome } from './payments.outcomes.js'
 import type { Payment, PaymentRequest } from './payments.schema.js'
 
 // Simulación de pasarela de pagos.
@@ -42,20 +43,47 @@ function payerId(email: string): string {
 }
 
 export function createPayment(request: PaymentRequest): Payment {
-  // Aquí es donde una pasarela real pediría autorización al banco emisor y
-  // esperaría su respuesta. Mientras tanto, siempre aprueba.
-  return {
-    id: paymentId(),
-    status: 'approved',
-    status_detail: 'accredited',
+  // Aquí es donde una pasarela real pediría autorización al banco emisor. En su
+  // lugar, el resultado lo decide el nombre del titular (ver payments.outcomes).
+  const outcome = resolveOutcome(request.card.cardholder_name)
+
+  const id = paymentId()
+  const amounts = {
     // El monto pasa por centavos para que la respuesta nunca devuelva algo
     // como 500.00000000001 aunque la petición lo traiga.
     transaction_amount: toAmount(toCents(request.transaction_amount)),
     currency_id: request.currency_id,
     date_created: new Date().toISOString(),
-    authorization_code: authorizationCode(),
+  }
+  const payer = {
     reference: request.reference,
     payer_id: payerId(request.payer_email),
     payer_email: request.payer_email,
+  }
+
+  if (outcome.status === 'rejected') {
+    // El motivo real queda aquí y no viaja en la respuesta. Solo el id del pago
+    // y la causa: nada de tarjeta, CVV ni correo. Quien atienda soporte puede
+    // buscar por ese id lo que el usuario no llega a ver.
+    console.log(`[${id}] rejected: ${outcome.loggedReason}`)
+
+    return {
+      id,
+      status: 'rejected',
+      status_detail: outcome.publicDetail,
+      ...amounts,
+      // Sin aprobación no hay código: no existe nada que el banco haya emitido.
+      authorization_code: null,
+      ...payer,
+    }
+  }
+
+  return {
+    id,
+    status: 'approved',
+    status_detail: 'accredited',
+    ...amounts,
+    authorization_code: authorizationCode(),
+    ...payer,
   }
 }

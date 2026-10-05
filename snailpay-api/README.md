@@ -66,6 +66,86 @@ Respuesta `201`:
 }
 ```
 
+Un cobro rechazado responde **también 201**, porque sigue siendo un pago: tiene
+`id`, fecha y referencia, y por tanto se puede consultar y conciliar. Lo que
+cambia es el estado.
+
+```json
+{
+  "id": "pay_8f564df7e8",
+  "status": "rejected",
+  "status_detail": "cc_rejected_insufficient_amount",
+  "transaction_amount": 500,
+  "currency_id": "MXN",
+  "date_created": "2026-10-05T03:42:11.108Z",
+  "authorization_code": null,
+  "reference": "a3f9c1e2-7b40-4d1e-9c22-5f8e1a0d3b67",
+  "payer_id": "cc9577dc9fdd9691",
+  "payer_email": "donovan@ejemplo.com"
+}
+```
+
+`authorization_code` va `null` en todo rechazo: ese código lo emite el banco al
+aprobar, así que si no aprobó no existe.
+
+El 400 queda para lo que impide siquiera intentar el cobro — número que no pasa
+Luhn, CVV con la longitud equivocada para la marca, moneda distinta de MXN. Un
+rechazo no es un error de la petición.
+
+### Escenarios de prueba
+
+El resultado lo decide el **nombre del titular**, siguiendo la convención de
+tarjetas de prueba de Mercado Pago. Coincide la primera palabra exacta: `FUND` y
+`FUND LOPEZ` disparan, `FUNDACION` no. Cualquier nombre fuera de la tabla
+aprueba.
+
+| Titular | `status` | `status_detail` |
+| ------- | -------- | --------------- |
+| *cualquier otro*, `APRO` | `approved` | `accredited` |
+| `FUND` | `rejected` | `cc_rejected_insufficient_amount` |
+| `SECU` | `rejected` | `cc_rejected_bad_filled_security_code` |
+| `EXPI` | `rejected` | `cc_rejected_bad_filled_date` |
+| `FORM` | `rejected` | `cc_rejected_bad_filled_other` |
+| `CALL` | `rejected` | `cc_rejected_call_for_authorize` |
+| `DUPL` | `rejected` | `cc_rejected_duplicated_payment` |
+| `MAXA` | `rejected` | `cc_rejected_max_attempts` |
+| `OTHE` | `rejected` | `cc_rejected_other_reason` |
+| `HIGH` | `rejected` | `cc_rejected_other_reason` ⚠️ |
+
+`APRO`, `OTHE`, `CALL`, `FUND`, `SECU`, `EXPI` y `FORM` son los disparadores
+reales de Mercado Pago. `HIGH`, `DUPL` y `MAXA` los añadimos aquí siguiendo el
+mismo patrón; los `status_detail`, en cambio, son todos códigos reales.
+
+**Por qué `HIGH` devuelve un motivo genérico.** Es el único caso enmascarado: la
+respuesta dice `cc_rejected_other_reason` y el log del servidor registra
+`cc_rejected_high_risk`. Copia lo que Stripe instruye para `lost_card` y
+`stolen_card` — devolverlos como rechazo genérico para no avisar a quien pueda
+ser el defraudador. El resto se dice tal cual, porque un motivo claro ayuda al
+usuario honesto a corregir y lo que el atacante gana ahí lo frena el límite de
+intentos, no el silencio.
+
+El motivo real de **todos** los rechazos queda en el log, con el id del pago y
+nada más:
+
+```
+[pay_8f564df7e8] rejected: cc_rejected_high_risk
+```
+
+Quien atienda soporte puede buscar por ese id lo que el usuario no llega a ver.
+
+### Tarjetas para probar
+
+Cualquiera de estas sirve: pasan Luhn, marca y longitud. El número no influye en
+el resultado —lo decide el titular— pero necesitas uno distinto por cada tarjeta
+que quieras tener guardada a la vez en el front, porque su regla de duplicados
+compara marca, últimos 4 y vencimiento.
+
+| Marca | Números |
+| ----- | ------- |
+| Visa | `4242424242424242` · `4012888888881881` · `4000056655665556` · `4111111111111111` |
+| Mastercard | `5555555555554444` · `5105105105105100` · `2223003122003222` |
+| American Express | `378282246310005` · `371449635398431` — CVV de **4** dígitos |
+
 Notas del contrato:
 
 - `reference` es el identificador de la operación **en el comercio**, y se
@@ -78,9 +158,23 @@ Notas del contrato:
 - `security_code` son 3 dígitos, o 4 si la marca es American Express.
 - Por ahora siempre aprueba. Los rechazos vendrán después.
 
-**Limitación conocida: no hay idempotencia.** Sin almacenamiento, el servicio no
-recuerda qué referencias ya vio, así que dos peticiones con la misma `reference`
-producen dos cobros. Un reintento por timeout cobraría dos veces.
+### Limitaciones conocidas
+
+Las dos salen de lo mismo: el servicio no guarda nada.
+
+**No hay idempotencia.** No recuerda qué referencias ya vio, así que dos
+peticiones con la misma `reference` producen dos cobros. Un reintento por
+timeout cobraría dos veces.
+
+**No hay límite de intentos.** No recuerda cuántas veces se ha probado una
+tarjeta, así que no puede frenar el *card testing* — mandar miles de números
+robados para ver cuáles aprueban. Conviene decirlo porque es la defensa que de
+verdad importa: ocultar motivos de rechazo apenas estorba a ese ataque, ya que
+la señal que busca es `approved` contra `rejected`, y esa no se puede quitar.
+
+En producción, además, el navegador no hablaría directo con la pasarela: habría
+un backend de comercio en medio decidiendo qué reenviar. Esa capa, que aquí no
+existe, es donde normalmente se filtra el detalle.
 
 ## Qué es y qué no es
 

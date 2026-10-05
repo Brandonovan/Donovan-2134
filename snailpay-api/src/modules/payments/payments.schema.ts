@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { brandInfo, detectBrand, isExpired, onlyDigits, passesLuhn } from '../../shared/card.js'
+import type { RejectedDetail } from './payments.outcomes.js'
 
 export const AMOUNT_LIMITS = { min: 50, max: 10_000 } as const
 export const CURRENCY = 'MXN' as const
@@ -89,15 +90,21 @@ export const paymentSchema = z.object({
 
 export type PaymentRequest = z.infer<typeof paymentSchema>
 
-export type Payment = {
+type PaymentBase = {
   id: string
-  status: 'approved'
-  status_detail: 'accredited'
   transaction_amount: number
   currency_id: typeof CURRENCY
   date_created: string
-  authorization_code: string
   reference: string
   payer_id: string
   payer_email: string
 }
+
+// Unión discriminada por `status` a propósito: el código de autorización lo
+// emite el banco AL APROBAR, así que un pago rechazado no puede tener uno.
+// Modelarlo así hace que ese estado imposible no se pueda ni escribir.
+export type Payment = PaymentBase &
+  (
+    | { status: 'approved'; status_detail: 'accredited'; authorization_code: string }
+    | { status: 'rejected'; status_detail: RejectedDetail; authorization_code: null }
+  )
