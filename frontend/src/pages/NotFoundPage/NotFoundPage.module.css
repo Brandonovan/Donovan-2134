@@ -4,6 +4,44 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--space-md);
+  gap: var(--space-sm);
+  padding: var(--space-xl) var(--space-md);
   text-align: center;
+}
+
+.snail {
+  width: 150px;
+  height: 118px;
+  margin-bottom: var(--space-sm);
+  background-color: var(--color-text-muted);
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+}
+
+/* El número es la etiqueta del error, no el mensaje: por eso va discreto y la
+   frase que explica qué pasó es la que manda. */
+.code {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.message {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.back {
+  margin-top: var(--space-md);
+  color: var(--color-primary);
+  font-size: 0.95rem;
+}
+
+.back:hover {
+  color: var(--color-accent);
 }

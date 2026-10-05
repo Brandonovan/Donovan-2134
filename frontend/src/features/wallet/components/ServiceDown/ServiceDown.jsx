@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/Button/Button'
 import { ROUTES } from '@/constants/routes'
-import snailDown from '@/assets/brand/snail-down.png'
+import snailSad from '@/assets/brand/snail-sad.png'
 import styles from './ServiceDown.module.css'
 
 // Dos causas distintas con el mismo aspecto pero distinto mensaje: que la
@@ -33,7 +33,7 @@ export function ServiceDown({ reason = 'major_outage', onRetry }) {
           apagado: es un estado temporal, no un error que el usuario cometió. */}
       <span
         className={styles.snail}
-        style={{ maskImage: `url(${snailDown})`, WebkitMaskImage: `url(${snailDown})` }}
+        style={{ maskImage: `url(${snailSad})`, WebkitMaskImage: `url(${snailSad})` }}
         aria-hidden="true"
       />
 
