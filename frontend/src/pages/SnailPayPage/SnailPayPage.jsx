@@ -8,8 +8,10 @@ import {
   BankAccounts,
   getTransactions,
   PaymentCards,
+  ServiceDown,
   SnailPayLoader,
   TransactionHistory,
+  useGatewayStatus,
   usePaymentMethods,
   useWallet,
   WalletOperation,
@@ -20,6 +22,7 @@ import styles from './SnailPayPage.module.css'
 export function SnailPayPage() {
   const { user } = useAuth()
   const { wallet, loading, error, retry } = useWallet()
+  const gateway = useGatewayStatus()
   const transactions = useRequest(getTransactions)
   const { setData: setTransactions } = transactions
   const payment = usePaymentMethods()
@@ -39,7 +42,13 @@ export function SnailPayPage() {
   const [hasLoaded, setHasLoaded] = useState(false)
   if (!hasLoaded && !loading && !transactions.loading) setHasLoaded(true)
 
-  if (!hasLoaded) return <SnailPayLoader />
+  if (!hasLoaded || gateway.status === 'checking') return <SnailPayLoader />
+
+  // Si la pasarela no acepta cobros, no tiene sentido enseñar el formulario:
+  // el usuario escribiría un monto para que se lo rechacen al confirmar.
+  if (!gateway.isOperational) {
+    return <ServiceDown reason={gateway.status} onRetry={gateway.retry} />
+  }
 
   return (
     <div className={styles.page}>

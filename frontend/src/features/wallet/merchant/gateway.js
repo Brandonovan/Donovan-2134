@@ -53,6 +53,32 @@ async function post(path, body) {
   return data
 }
 
+// Estado operativo de la pasarela. Devuelve uno de tres:
+//
+//   'operational'   acepta cobros
+//   'major_outage'  está arriba y dice que no
+//   'unreachable'   ni siquiera contesta
+//
+// Los dos últimos son distintos y merecen mensajes distintos: una cosa es que
+// el servicio esté caído y otra que el problema esté en medio. Por eso la
+// pasarela responde 200 incluso estando caída.
+//
+// Sin pasarela configurada se informa 'operational', porque entonces el cobro
+// lo simula el propio comercio y no hay nada que pueda estar caído.
+export async function readStatus() {
+  if (!isConfigured()) return 'operational'
+
+  try {
+    const response = await fetch(`${BASE_URL}/status`)
+    if (!response.ok) return 'unreachable'
+
+    const data = await response.json()
+    return data.payments_enabled ? 'operational' : 'major_outage'
+  } catch {
+    return 'unreachable'
+  }
+}
+
 // vaultCard = { number, expMonth, expYear, holder } tal y como sale de la bóveda.
 // cvv = el que el usuario escribió para esta operación; no se guarda.
 export function charge({ amount, reference, payerEmail, vaultCard, cvv }) {
